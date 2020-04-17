@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Ribbon_Load">
+  <ribbon>
+    <tabs>
+      <tab id="LPTool" label="Kursheft Tools">
+
+        <group id="NewStartGrp"
+               label="Neu Anfangen">
+          <button id ="btnCreateNoteboard" label="Neue Bemerkungsbogen erstellen" size="large" imageMso="NewNote" onAction="btnCreateNoteboard_Click"/>
+          <button id="btnImportCourse" label="Kursliste importieren" size="large" imageMso="ImportTextFile" onAction="btnImportCourse_Click"/>
+          <button id="btnCreateCoursePlan" label="Kurshefte generieren" size="large" imageMso="PublishToPdfOrEdoc" onAction="btnCreatePlan_Click"/>
+          <button id="btnExportNoteboard" label="Bemerkungsbogen exportieren" size="normal" imageMso="TableExportTableToSharePointList" onAction="btnExportNoteboard_Click"/>
+          <button id="btnImportNoteboard" label="Bemerkungsbogen importieren" size="normal" imageMso="ImportSavedImports" onAction="btnImportNoteboard_Click"/>
+        </group>
+
+
+        <group id="InformationGrp"
+               label="Info">
+          <button id="btnInformation" label="Info" size="large" imageMso="Info" onAction="btnInformation_Click"/>
+          <button id ="btnLicenses" label="Licenses" size="large" imageMso="FunctionsInformationInsertGallery" onAction="btnLicenses_Click"/>
+        </group>
+
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>
+

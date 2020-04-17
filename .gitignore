@@ -1,0 +1,38 @@
+#Ignore the test output
+TestOutPut/
+
+#Ignore the test data
+TestData/
+
+#Ignore the build files
+Debug/
+Release/
+
+bin/
+obj/
+
+#Ignore the installation project
+**/Installation/*
+**/BSKursheftTools/*
+
+#Ignore the temporary certificates
+*.pfx
+
+#Ignore the test logo due to copyright reason
+LOGO.png
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# NuGet Packages
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+**/packages/*
+# except build/, which is used as an MSBuild target.
+!**/packages/build/
+# Uncomment if necessary however generally it will be regenerated when needed
+#!**/packages/repositories.config
