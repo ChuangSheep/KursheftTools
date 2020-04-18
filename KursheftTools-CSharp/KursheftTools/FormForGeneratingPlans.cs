@@ -4,6 +4,7 @@ using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
 
@@ -12,6 +13,8 @@ namespace KursheftTools
     public partial class FormForGeneratingPlans : Form
     {
         private Excel.Worksheet noteBoard;
+        public int ExportedPDFs = 0;
+        public string currentInfo;
         private string PDFStorePath;
         private string LogoStorePath;
         private string[] PDFClasses;
@@ -141,9 +144,9 @@ namespace KursheftTools
                 PDFClasses = grds.ToArray();
 
                 //Call the export function
-                int NumExported = ExportPlans();
+                ExportPlans();
 
-                MessageBox.Show($"{NumExported} PDF-Datei wurde erfolgreich exportiert unter\r\n {PDFStorePath}", "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"{ExportedPDFs} PDF-Datei wurde erfolgreich exportiert unter\r\n {PDFStorePath}", "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 DialogResult = DialogResult.Yes;
                 this.Close();
 
@@ -164,9 +167,8 @@ namespace KursheftTools
         /// Export the plans based on the given coursePlan and the note board
         /// </summary>
         /// <returns>An Integer represents how many pdf files were exported</returns>
-        private int ExportPlans()
+        private void ExportPlans()
         {
-            int ExportedPDFs = 0;
 
             //Initialize the lists for the loop
             List<CoursePlan> Plans = new List<CoursePlan>();
@@ -241,6 +243,14 @@ namespace KursheftTools
                 }
             }
 
+            //Start a new thread showing the progress
+            Thread progressT = new Thread(delegate ()
+            {
+                FormProgress formProgress = new FormProgress(this, Plans.Count);
+                formProgress.ShowDialog();
+            });
+           progressT.Start();
+
             //Export them
             if (Plans.Count == Dates.Count && Dates.Count == IsRegular.Count && IsRegular.Count != 0)
             {
@@ -251,6 +261,7 @@ namespace KursheftTools
                     //After all the note board processed
                     //Export the current course plan
                     currentCoursePlan.ExportAsPDF(Periods, PDFStorePath, LogoStorePath != "" ? LogoStorePath : "default");
+                    currentInfo = $"{currentCoursePlan.GetTitle()} wurde exportiert unter: {PDFStorePath}";
                     ExportedPDFs++;
                 }
 
@@ -258,12 +269,11 @@ namespace KursheftTools
             else
             {
                 System.Diagnostics.Debug.WriteLine("The Plans is empty: no plan stored");
-                return -1;
+                ExportedPDFs =  -1;
             }
 
-
+            //progressT.Abort();
             System.Diagnostics.Debug.WriteLine($"{ExportedPDFs} wurde exportiert unter: {PDFStorePath}");
-            return ExportedPDFs;
         }
     }
 }

@@ -43,6 +43,14 @@ namespace KursheftTools
         }
 
         /// <summary>
+        /// Get the title of this course
+        /// </summary>
+        /// <returns>A string represents the title of this course. </returns>
+        public string GetTitle()
+        {
+            return $"{this.CourseName}-{this.Teacher}-{this.ClassName}.pdf";
+        }
+        /// <summary>
         /// Get the grade of this course
         /// </summary>
         /// <returns>The grade of this course as string</returns>
