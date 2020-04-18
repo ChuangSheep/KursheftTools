@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 
 namespace KursheftTools
@@ -25,7 +24,7 @@ namespace KursheftTools
         /// <param name="start">The start date</param>
         /// <param name="weekday">the weekday in short form: ex. Mo, Di etc. </param>
         /// <returns></returns>
-        public static DateTime GetNearestWeekday(DateTime start, string weekday)
+        public static DateTime GetNearestWeekdayS(DateTime start, string weekday)
         {
             var culture = new CultureInfo("de-DE");
 
@@ -45,6 +44,7 @@ namespace KursheftTools
             //The following exception is not excepted to be thrown
             throw new ArithmeticException("A not expected error occured at dateTimeCalc.GetNearestWeekday");
         }
+
 
         /// <summary>
         /// Gets the weeks between two dates
@@ -83,11 +83,21 @@ namespace KursheftTools
             }
         }
 
+        /// <summary>
+        /// Get the weekday in short form of the given DateTime object of culture de-DE
+        /// </summary>
+        /// <param name="dt">The date</param>
+        /// <returns>A string represents the short form of the given date. </returns>
         public static string GetWeekday(DateTime dt)
         {
             return dt.ToString("ddd", new CultureInfo("de-DE")).Substring(0, 2);
         }
 
+        /// <summary>
+        /// Indicates whether the given date is in even week or not. 
+        /// </summary>
+        /// <param name="dt">The date</param>
+        /// <returns>A boolean value represents whether the given date is in even week or not</returns>
         public static bool IsEvenWeek(DateTime dt)
         {
             CultureInfo culture = new CultureInfo("de-DE");
@@ -98,6 +108,13 @@ namespace KursheftTools
             return calendar.GetWeekOfYear(dt, calendarWeekRule, FirstDayOfWeek) % 2 == 0;
         }
 
+        /// <summary>
+        /// Sort the given date array from early to late
+        /// This function WILL CHANGE THE ORIGIN GIVEN PARAMETER as it is ref
+        /// </summary>
+        /// <typeparam name="T">A general type, such as string</typeparam>
+        /// <param name="dateArr">The date array that needs to be sorted</param>
+        /// <param name="associatedArr">Another array. The order of items in this array will be changed if the dateArr is changed.</param>
         public static void SortDate <T> (ref DateTime[] dateArr, ref T[] associatedArr)
         {
             if (dateArr.Length != associatedArr.Length) throw new ArgumentException("The given two arrays dont have the same numbers of items", "associatedArr");
@@ -113,6 +130,15 @@ namespace KursheftTools
                 }
             }
         }
+
+        /// <summary>
+        /// Sort the given array by ref mode
+        /// The given array ITSELF WILL BE CHANGED
+        /// </summary>
+        /// <typeparam name="T">Any type that can be in an array.</typeparam>
+        /// <param name="Arr">The array</param>
+        /// <param name="index1">The first item</param>
+        /// <param name="index2">The second item</param>
         private static void ArrSwap<T>(ref T[] Arr, int index1, int index2)
         {
             if (index1 > Arr.Length || index2 > Arr.Length) throw new ArgumentException($"The given index is out of range: {index1}, {index2}", "index1 or index 2");
@@ -121,6 +147,11 @@ namespace KursheftTools
             Arr[index2] = cache;
         }
 
+        /// <summary>
+        /// Indicates whether the given date is in the first half year or the second 
+        /// </summary>
+        /// <param name="dt">The date</param>
+        /// <returns>A string contains the information whether the given date is in the first half year or the second</returns>
         public static string GetHalfYear(DateTime dt)
         {
             if (dt.GetWeekOfYear() < 30) return $"2. Halbjahr {dt.AddDays(-365):yyyy}/{dt:yy}";

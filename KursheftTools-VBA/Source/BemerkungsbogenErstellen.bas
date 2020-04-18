@@ -1,4 +1,4 @@
-Attribute VB_Name = "BemerkungsbogenGenerieren"
+Attribute VB_Name = "BemerkungsbogenErstellen"
 Option Explicit
 
 '------Global Variables-------------------
@@ -14,7 +14,7 @@ Public dialogResult1 As Boolean
 
 
 '''<summary>The main function that creates a note board based on the user inputed dates</summary>
-Public Sub BemerkungsbogenGenerieren()
+Public Sub BemerkungsbogenErstellen()
 
 'Set the dialog result for the FormForInputDates
 dialogResult = False

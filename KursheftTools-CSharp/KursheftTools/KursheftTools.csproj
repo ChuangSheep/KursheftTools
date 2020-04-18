@@ -166,7 +166,7 @@
     <Compile Include="CoursePlan.cs" />
     <Compile Include="CSVUtils.cs" />
     <Compile Include="DateTimeClacUtils.cs" />
-    <Compile Include="Daynotes.cs" />
+    <Compile Include="Daynote.cs" />
     <Compile Include="FormAbout.cs">
       <SubType>Form</SubType>
     </Compile>

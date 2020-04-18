@@ -20,6 +20,11 @@ namespace KursheftTools
             InitializeComponent();
         }
 
+        /// <summary>
+        /// If the accept is clicked, check the given values
+        /// If these are valid, start to create the note board
+        /// Otherwise, mark the wrong field as red
+        /// </summary>
         private void btnAccept_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.None;
@@ -93,7 +98,12 @@ namespace KursheftTools
                 "Hilfe", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
-        private Boolean CreateBoard(DateTime[] dates)
+        /// <summary>
+        /// Create a note board based on the given date periods
+        /// </summary>
+        /// <param name="dates">An array of DateTime objects represents the start of year, of the second period and the end of the half year. </param>
+        /// <returns>A boolean value represents whether this operation finished successfully or not</returns>
+        private bool CreateBoard(DateTime[] dates)
         {
             if (dates.Length != 3) throw new ArgumentException("The augument \"dates\" (array of DateTime) must have 3 items", "dates");
 

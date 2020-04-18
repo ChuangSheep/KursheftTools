@@ -1,14 +1,11 @@
-﻿using Microsoft.Office.Core;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Excel = Microsoft.Office.Interop.Excel;
-using System.Reflection;
 
 namespace KursheftTools
 {
@@ -17,10 +14,18 @@ namespace KursheftTools
         private Excel.Worksheet noteBoard;
         private string PDFStorePath;
         private string LogoStorePath;
-        private string[] PDFGrades;
+        private string[] PDFClasses;
         private DateTime[] Periods;
         private DataTable coursePlan;
         private static readonly string[] VALIDGRADES = new string[8] { "05", "06", "07", "08", "09", "EF", "Q1", "Q2" };
+
+        /// <summary>
+        /// Class constructor
+        /// </summary>
+        /// <param name="sheet">A excel worksheet object represents the note board. </param>
+        /// <param name="prds">An array of 3 DateTime objects represents the start of year, 
+        ///             the start of the second period and the end of the half year. </param>
+        /// <param name="coursePlan">A datatable object contains the full course list. </param>
         public FormForGeneratingPlans(Excel.Worksheet sheet, DateTime[] prds, DataTable coursePlan)
         {
             //Initialize the class menbers
@@ -65,6 +70,11 @@ namespace KursheftTools
             }
         }
 
+        /// <summary>
+        /// Check the input data
+        /// If these are valid, start to export the plans
+        /// Otherwise, mark the wrong field as red
+        /// </summary>
         private void btnAccept_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.None;
@@ -110,7 +120,25 @@ namespace KursheftTools
                 //Write the text into the variables
                 PDFStorePath = StoredIn.Text;
                 LogoStorePath = LogoPath.Text;
-                PDFGrades = Grades.Text.Split(';');
+                string[] GradesFromTB = Grades.Text.Split(';');
+                List<string> grds = new List<string>();
+                string[] Classes = new string[5] { "a", "b", "c", "d", "e" };
+                foreach (string s in GradesFromTB)
+                {
+                    if (s == "Q1" || s == "Q2")
+                    {
+                        grds.Add(s);
+                    }
+                    else
+                    {
+                        foreach (string cls in Classes)
+                        {
+                            grds.Add(s + cls);
+                        }
+                    }
+                }
+
+                PDFClasses = grds.ToArray();
 
                 //Call the export function
                 int NumExported = ExportPlans();
@@ -131,169 +159,110 @@ namespace KursheftTools
             this.Close();
         }
 
+
+        /// <summary>
+        /// Export the plans based on the given coursePlan and the note board
+        /// </summary>
+        /// <returns>An Integer represents how many pdf files were exported</returns>
         private int ExportPlans()
         {
             int ExportedPDFs = 0;
-            //Get all rows of the course list
-            //Assuming all the order are not changed
-            //And the courses and the dates are ordered properly
-            DataRow[] rows = coursePlan.Select();
 
-            //Initialize the variables for the usage in the loop
-            string CurrentCourseNum = "", CurrentClass = "", Teacher = "", CurrentSubject = "";
-            List<DateTime> dates = new List<DateTime>();
-            List<string> isRegular = new List<string>();
+            //Initialize the lists for the loop
+            List<CoursePlan> Plans = new List<CoursePlan>();
+            List<DateTime[]> Dates = new List<DateTime[]>();
+            List<string[]> IsRegular = new List<string[]>();
 
-            foreach (DataRow row in rows)
+            foreach (string CurrentValidClass in PDFClasses)
             {
-                //Assuming that all the rows are not same
-                int indexOfRow = Array.IndexOf(rows, row);
-                //Initialize the variables for the loop
-                string CurrentCoursegrade = "";
+                //Get the datatable that contains all the information for the current class
                 try
                 {
-                     CurrentCoursegrade = row.ItemArray[1].ToString().Length == 2 ? row.ItemArray[1].ToString() : row.ItemArray[1].ToString().Substring(0, 2);
+                    DataTable currentClassDT = coursePlan.Select($"Class = '{CurrentValidClass}'").CopyToDataTable();
+
+                    //Get a List containing all unique subjects
+                    var subjectList = currentClassDT.AsEnumerable().Select(s => new
+                    {
+                        Subject = s.Field<string>("Subject")
+                    })
+                    .Distinct().ToList();
+
+                    //Traverse the list of subjects
+                    foreach (var currentSubject in subjectList)
+                    {
+                        string a = currentSubject.ToString().Remove(0, 12);
+                        char[] cA = a.ToCharArray();
+                        a = "";
+                        for (int i = 0; i < cA.Length - 2; i++)
+                        {
+                            a += cA[i];
+                        }
+
+
+                        //Get the information of a specific course
+                        DataRow[] currentCourse = currentClassDT.Select($"Subject = '{a}'");
+
+                        if (currentCourse.Length != 0 && (string)currentCourse[0].ItemArray[1] != "")
+                        {
+                            //Create a new plan
+                            CoursePlan currentPlan = new CoursePlan(currentCourse[0].ItemArray[3].ToString(), currentCourse[0].ItemArray[1].ToString(),
+                                                                currentCourse[0].ItemArray[2].ToString());
+                            List<DateTime> currentDT = new List<DateTime>();
+                            List<string> currentIsRegular = new List<string>();
+                            foreach (DataRow row in currentCourse)
+                            {
+                                //Assuming that all the rows are not same
+                                int indexOfRow = Array.IndexOf(currentCourse, row);
+
+                                //If this row does not contain any number or any class
+                                if ((string)row.ItemArray[0] == "" || (string)row.ItemArray[1] == "") continue;
+                                //If this is the first line or the dates are not the same
+                                if (indexOfRow == 0 ||
+                                    DateTime.Compare(DateTimeCalcUtils.GetNearestWeekdayS(Periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString()))), currentDT.Last()) != 0)
+                                {
+                                    currentDT.Add(DateTimeCalcUtils.GetNearestWeekdayS(Periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString()))));
+                                    currentIsRegular.Add(currentCourse[indexOfRow].ItemArray[7].ToString());
+                                }
+                                //If the isRegular value, however, are not the same, then if there's a course on this day on every week, set isRegular to regular("")
+                                else if ("" != currentIsRegular.Last() && row.ItemArray[7].ToString() != currentIsRegular.Last()) currentIsRegular[currentIsRegular.Count - 1] = "";
+
+                            }
+
+                            //Add them to the list
+                            Plans.Add(currentPlan);
+                            Dates.Add(currentDT.ToArray());
+                            IsRegular.Add(currentIsRegular.ToArray());
+                        }
+                    }
                 }
-                catch (ArgumentOutOfRangeException)
+                catch (InvalidOperationException)
                 {
-                    //System.Diagnostics.Debug.WriteLine(AOORE);
                     continue;
                 }
-                //If we should export this grade
-                if (Array.Exists(PDFGrades, element => element == CurrentCoursegrade))
+            }
+
+            //Export them
+            if (Plans.Count == Dates.Count && Dates.Count == IsRegular.Count && IsRegular.Count != 0)
+            {
+                for (int i = 0; i < Plans.Count; i++)
                 {
-
-                    //Jump the rows without a course number or a class name
-                    if (row.ItemArray[0].ToString() == "" || row.ItemArray[1].ToString() == "") continue;
-
-                        //If the current course is still for this row
-                    if (CurrentCourseNum == row.ItemArray[0].ToString() && CurrentClass == row.ItemArray[1].ToString() && CurrentSubject == row.ItemArray[3].ToString())
-                    {
-                        //If this date is not added, add it
-                        if (dates.Last() != DateTimeCalcUtils.GetNearestWeekday(Periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(row.ItemArray[5].ToString()))))
-                        {
-                            dates.Add(DateTimeCalcUtils.GetNearestWeekday(Periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(row.ItemArray[5].ToString()))));
-                            isRegular.Add(row.ItemArray[7].ToString());
-                        }
-                        //If the isRegular value, however, are not the same, then if there's a course on this day on every week, set isRegular to regular("")
-                        else if ("" != isRegular.Last() && row.ItemArray[7].ToString() != isRegular.Last()) isRegular[isRegular.Count - 1] = "";
-                    }
-                        //If we are going to a new course
-                    else
-                    {
-                        CurrentCourseNum = row.ItemArray[0].ToString();
-                        CurrentClass = row.ItemArray[1].ToString();
-                        Teacher = row.ItemArray[2].ToString();
-                        CurrentSubject = row.ItemArray[3].ToString();
-
-                        isRegular.Clear();
-                        dates.Clear();
-                        //Add the date to the array
-                        isRegular.Add(row.ItemArray[7].ToString());
-                        dates.Add(DateTimeCalcUtils.GetNearestWeekday(Periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(row.ItemArray[5].ToString()))));
-       
-                    }
-
-
-                    //Test if the next row is for another course
-
-                    //If this is already the last line
-                    //Or, if the course number or the class or the subject is different in the next row
-                    if (indexOfRow == rows.Length - 1 || rows[indexOfRow + 1].ItemArray[0].ToString() != CurrentCourseNum 
-                        || rows[indexOfRow + 1].ItemArray[1].ToString() != CurrentClass || rows[indexOfRow + 1].ItemArray[3].ToString() != CurrentSubject)
-                    {
-                        //Initialize the course plan
-                        CoursePlan currentCoursePlan = new CoursePlan(CurrentSubject, CurrentClass, Teacher);
-
-                        //Convert the lists to the array
-                        DateTime[] DatesA = dates.ToArray();
-                        string[] IsRegularA = isRegular.ToArray();
-                        //Clear the lists
-                        dates.Clear();
-                        isRegular.Clear();
-                        //Sort the date
-                        //The order of the array "IsRegularA" should be changed at the same time
-                        DateTimeCalcUtils.SortDate(ref DatesA, ref IsRegularA);
-
-                        //Go through each line of the note board
-                        int k = 0;
-                        for (int i = 3; i < noteBoard.UsedRange.Rows.Count - 1; i++)
-                        {
-                            var lineDate = ((Excel.Range)noteBoard.Cells[i, 2]).Value;
-                            DateTime DlineDate = new DateTime();
-
-                            try
-                            {
-                                //Try to convert the lineDate to DateTime obj
-                                 DlineDate = lineDate;
-                            }
-                            catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
-                            {
-                                //Jump the title lines
-                                //System.Diagnostics.Debug.WriteLine(Rbe);
-
-                                //Jump the holiday
-                                for (int n = 0; n < DatesA.Length; n++)
-                                {
-                                    DatesA[n] = DatesA[n].AddDays(14);
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                System.Diagnostics.Debug.WriteLine($"Generic Exception: {e}");
-                            }
-
-                            if (DateTime.Compare(DlineDate, new DateTime()) != 0)
-                            {
-                                //If the date fits
-                                if (DateTime.Compare(DlineDate, DatesA[k]) == 0)
-                                {
-                                    //If this weekday is regular, or it fits to the rule
-                                    if (IsRegularA[k] == "" ||
-                                        (DateTimeCalcUtils.IsEvenWeek(DlineDate) && IsRegularA[k] == "g") ||
-                                        (!DateTimeCalcUtils.IsEvenWeek(DlineDate) && IsRegularA[k] == "u"))
-                                    {
-                                        Daynotes currentDaynotes = new Daynotes(DlineDate);
-
-                                        //Go through the three notes on the same row
-                                        for (int j = 3; j < 8; j += 2)
-                                        {
-                                            string currentNote = ((Excel.Range)noteBoard.Cells[i, j]).Value;
-                                            string currentLineGrade = ((Excel.Range)noteBoard.Cells[i, j + 1]).Value;
-
-                                            //When the note is not empty
-                                            if (currentNote != null)
-                                            {
-                                                //If the grade fits to the current course
-                                                if (currentLineGrade == CurrentCoursegrade || currentLineGrade == null)
-                                                {
-                                                    currentDaynotes.AddNote(currentNote);
-                                                }
-                                            }
-                                        }
-                                        //Add the daynote to the plan
-                                        currentCoursePlan.AddLine(currentDaynotes);
-                                    }
-
-                                    DatesA[k] = DatesA[k].AddDays(7);
-
-                                    //Move the counter of the DatesA array
-                                    if (k < DatesA.Length - 1) k++;
-                                    else k = 0;
-                                }
-                            }
-                        }
-
-                        //After all the note board processed
-                        //Export the current course plan
-                        currentCoursePlan.ExportAsPDF(Periods, PDFStorePath, LogoStorePath != "" ? LogoStorePath : "default");
-                        ExportedPDFs++;
-                    }
+                    CoursePlan currentCoursePlan = Plans[i];
+                    currentCoursePlan.ReadNoteBoard(noteBoard, Dates[i], IsRegular[i]);
+                    //After all the note board processed
+                    //Export the current course plan
+                    currentCoursePlan.ExportAsPDF(Periods, PDFStorePath, LogoStorePath != "" ? LogoStorePath : "default");
+                    ExportedPDFs++;
                 }
 
             }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("The Plans is empty: no plan stored");
+                return -1;
+            }
 
-            System.Diagnostics.Debug.WriteLine($"{ExportedPDFs} sind exportiert unter: {PDFStorePath}");
+
+            System.Diagnostics.Debug.WriteLine($"{ExportedPDFs} wurde exportiert unter: {PDFStorePath}");
             return ExportedPDFs;
         }
     }

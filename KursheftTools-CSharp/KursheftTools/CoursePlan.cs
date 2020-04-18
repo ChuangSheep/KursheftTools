@@ -4,29 +4,65 @@ using PdfSharp.Drawing.Layout;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System;
+using Excel = Microsoft.Office.Interop.Excel;
 using System.Text;
 
 namespace KursheftTools
 {
     class CoursePlan
     {
-        private List<Daynotes> Lines;
+        /// <summary>
+        /// A list of Daynotes objects contains all the notes for this course in this half year
+        /// </summary>
+        private List<Daynote> Lines;
         private string CourseName { get; }
         private string ClassName { get; }
         private string Teacher { get; }
+
+        /// <summary>
+        /// Class constructor
+        /// </summary>
+        /// <param name="CourseName">The name of this course as string</param>
+        /// <param name="ClassName">The name of the class of the course as string</param>
+        /// <param name="Teacher">The name of the teacher as string</param>
         public CoursePlan(string CourseName, string ClassName, string Teacher)
         {
-            Lines = new List<Daynotes>();
+            Lines = new List<Daynote>();
             this.CourseName = CourseName;
             this.ClassName = ClassName;
             this.Teacher = Teacher;
         }
 
-        public void AddLine(Daynotes daynotes)
+        /// <summary>
+        /// Add a daynote object to this course plan
+        /// </summary>
+        /// <param name="daynotes">A Daynotes object contains all the notes on one day</param>
+        public void AddLine(Daynote daynotes)
         {
             Lines.Add(daynotes);
         }
 
+        /// <summary>
+        /// Get the grade of this course
+        /// </summary>
+        /// <returns>The grade of this course as string</returns>
+        public string GetGrade()
+        {
+            return ClassName.Length == 2 ? ClassName : ClassName.Substring(0, 2);
+        }
+
+        /// <summary>
+        /// Export this course to the given path as pdf
+        /// </summary>
+        /// <param name="Periods">An array of DateTime contains 3 items representing the start of the year, 
+        ///                     the start of the second period and the end of the half year.</param>
+        /// <param name="StoredPath">The path where the exported pdf should be stored.
+        ///                     This path does NOT contain the name of this pdf file.
+        ///                     The name will be like this format:
+        ///                     CourseName-Teacher-Class.pdf</param>
+        /// <param name="LogoFilePath">A optional parameter represents where the logo is stored. 
+        ///                     If this is not given, then the logo will be replaced by the words "Sollstuden für Kurs"</param>
+        /// <returns>A boolean value represents whether the export is successful or not.</returns>
         public bool ExportAsPDF(DateTime[] Periods, string StoredPath,  string LogoFilePath = "default")
         {
             string title = $"{this.CourseName}-{this.Teacher}-{this.ClassName}";
@@ -152,7 +188,7 @@ namespace KursheftTools
                     else xGps.DrawRectangle(brushes[1], new XRect(new XPoint(smallRectStartCo[2].X, smallRectStartCo[2].Y - OFFSET), new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[3].Y + SMALLRECTHEIGHT - OFFSET)));
 
                     currentLine = new XRect(smallRectStartCo[2], new XPoint(smallRectStartCo[3].X, smallRectStartCo[2].Y + SMALLRECTHEIGHT));
-                    xtf.DrawString(Lines[i + (int)ROWS].GetWeekdayS() + "  " + Lines[i].GetDateS(), boldFont, XBrushes.Black, currentLine, XStringFormats.TopLeft);
+                    xtf.DrawString(Lines[i + (int)ROWS].GetWeekdayS() + "  " + Lines[i + (int)ROWS].GetDateS(), boldFont, XBrushes.Black, currentLine, XStringFormats.TopLeft);
                     currentLine = new XRect(smallRectStartCo[3], new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[3].Y + SMALLRECTHEIGHT));
                     xtf.DrawString(Lines[i + (int)ROWS].GetNotes(), regularFont, XBrushes.Black, currentLine, XStringFormats.TopLeft);
 
@@ -217,13 +253,86 @@ namespace KursheftTools
         }
 
         /// <summary>
+        /// Read all the note from the given Worksheet object, create the Daynotes objects and add them to this CoursePlan object. 
+        /// </summary>
+        /// <param name="noteBoard">A excel worksheet object represents the note board. </param>
+        /// <param name="dates">An array of DateTime objects contains all the start time of this course </param>
+        /// <param name="isRegular">An array of string represents this course appears every week or every two weeks. 
+        ///                 "" represents regular, "g" represents only on even weeks and "u" only on odd weeks. 
+        ///                 The order of this array should be the same as the order of the array "dates". </param>
+        public void ReadNoteBoard(Excel.Worksheet noteBoard, DateTime[] dates, string[] isRegular)
+        {
+            DateTimeCalcUtils.SortDate(ref dates, ref isRegular);
+            //Initialize the counter
+            int k = 0;
+            //Traverse the note board
+            for (int i = 3; i < noteBoard.UsedRange.Rows.Count - 1; i++)
+            {
+                //Jump the title lines
+                if (((Excel.Range)noteBoard.Cells[i, 2]).Text == "Anfang d. 2. Abschnitts")
+                {
+                    //Jump the holiday
+                    for (int n = 0; n < dates.Length; n++)
+                    {
+                        dates[n] = dates[n].AddDays(14);
+                    }
+                    //To the next row of the note board
+                    continue;
+                }
+                //Jump the title lines
+                else if (((Excel.Range)noteBoard.Cells[i, 2]).Text == "Ende des Schuljahres" || ((Excel.Range)noteBoard.Cells[i, 2]).Text == "") continue;
+
+                DateTime lineDate = ((Excel.Range)noteBoard.Cells[i, 2]).Value;
+
+                //If the date fits
+                if (DateTime.Compare(lineDate, dates[k]) == 0)
+                {
+                    //If this weekday is regular, or it fits to the rule
+                    if (isRegular[k] == "" ||
+                        (DateTimeCalcUtils.IsEvenWeek(lineDate) && isRegular[k] == "g") ||
+                        (!DateTimeCalcUtils.IsEvenWeek(lineDate) && isRegular[k] == "u"))
+                    {
+                        Daynote currentDaynotes = new Daynote(lineDate);
+
+                        //Go through the three notes on the same row
+                        for (int j = 3; j < 8; j += 2)
+                        {
+                            string currentNote = ((Excel.Range)noteBoard.Cells[i, j]).Value;
+                            string currentLineGrade = ((Excel.Range)noteBoard.Cells[i, j + 1]).Value;
+
+                            //When the note is not empty
+                            if (currentNote != null)
+                            {
+                                //If the grade fits to the current course
+                                if (currentLineGrade == this.GetGrade() || currentLineGrade == null)
+                                {
+                                    currentDaynotes.AddNote(currentNote);
+                                }
+                            }
+                        }
+                        //Add the daynote to the plan
+                        this.AddLine(currentDaynotes);
+                    }
+
+                    dates[k] = dates[k].AddDays(7);
+
+                    //Move the counter of the DatesA array
+                    if (k < dates.Length - 1) k++;
+                    else k = 0;
+                }
+
+            }
+        }
+
+
+        /// <summary>
         /// ONLY FOR DEBUG USAGE
         /// Print all the daynotes in this CoursePlan object to the console
         /// </summary>
         public void PrintString()
         {
             Debug.WriteLine($"Course: {this.CourseName}, Class: {this.ClassName}, Teacher: {this.Teacher}");
-            foreach (Daynotes daynotes in Lines)
+            foreach (Daynote daynotes in Lines)
             {
                 Debug.WriteLine($"{daynotes.GetWeekdayS()}  {daynotes.GetDateS()}: {daynotes.GetNotes()}");
             }

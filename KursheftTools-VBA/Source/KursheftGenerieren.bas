@@ -87,14 +87,18 @@ If dialogResult Then
     'If success, then
     If ImportCourseList(courseListPath, csvSheetName) Then
         
-        'Store how many courses are exported
-        Dim exportCounter As Integer
-        exportCounter = 0
-        
         'Store the imported data sheet as a worksheet object into "courseListS"
         Dim courseListS As Excel.Worksheet
         Set courseListS = Worksheets(csvSheetName)
         
+        'Sort the list
+        Call SortCSVSheet(courseListS)
+        
+        
+        'Store how many courses are exported
+        Dim exportCounter As Integer
+        exportCounter = 0
+                
         'The rows of the course list
         Dim rows As Long
         rows = courseListS.UsedRange.rows.Count
@@ -103,9 +107,6 @@ If dialogResult Then
         Dim NoteboardRows As Long
         NoteboardRows = noteBoard.UsedRange.rows.Count
         
-        'The course that is handled now
-        Dim currentCourseNum As String
-        currentCourseNum = -1
         'The class that is handled now since the course number could be the same
         Dim currentCourseClass As String
         currentCourseClass = ""
@@ -143,7 +144,7 @@ If dialogResult Then
                     If (courseListS.Cells(i, 1) = "" Or courseListS.Cells(i, 2) = "") Then
                         'jump the line without a course number or without a class
                         Debug.Print "course list csv empty course number: line: " & CStr(i)
-                    ElseIf (currentCourseNum = courseListS.Cells(i, 1) And (currentCourseClass = courseListS.Cells(i, 2)) And (currentCourseName <> courseListS.Cells(i + 1, 2))) Then
+                    ElseIf ((currentCourseClass = courseListS.Cells(i, 2)) And (currentCourseName = courseListS.Cells(i, 4))) Then
                         'If the current course number and so as the same class is also for this line
                         
                         'Then If the weekday is not added, add it to the array
@@ -156,8 +157,7 @@ If dialogResult Then
                             isRegular(GetArrayLength(isRegular) - 1) = courseListS.Cells(i, 8).value
                         End If
                     Else
-                        'Handle the new course number now
-                        currentCourseNum = courseListS.Cells(i, 1).value
+                        'Handle the new course now
                         currentCourseClass = courseListS.Cells(i, 2).value
                         currentCourseName = courseListS.Cells(i, 4).value
                 
@@ -170,7 +170,7 @@ If dialogResult Then
         
         
                     'If all the lines for this course number with the class is processed, summary them up and export as pdf
-                    If (currentCourseNum <> courseListS.Cells(i + 1, 1) Or (currentCourseClass <> courseListS.Cells(i + 1, 2)) Or (currentCourseName <> courseListS.Cells(i + 1, 2))) Then
+                    If ((currentCourseClass <> courseListS.Cells(i + 1, 2)) Or (currentCourseName <> courseListS.Cells(i + 1, 4))) Then
                         Set currentPlan = New CoursePlan
                         Call currentPlan.Initialize(currentCourseName, currentCourseClass, courseListS.Cells(i, 3))
                 
@@ -264,7 +264,7 @@ If dialogResult Then
                         'If the pdf is not exported successfully, print the debug info
                         If Not ExportPDF(currentPlan, storedPath & "\" & tit, exportingSheet) Then
                             Debug.Print "The pdf export is not successful"
-                            Debug.Print currentPlan.GCourseName & " " & currentPlan.GClassName & " " & currentCourseNum
+                            Debug.Print currentPlan.GCourseName & " " & currentPlan.GClassName & " " & currentPlan.GTeacher
                         Else
                             exportCounter = exportCounter + 1
                         End If
@@ -375,6 +375,31 @@ Resume CleanUp
 
 End Function
 
+'''<summary>Sort the given sheet by the classes</summary>
+'''<param name="sheet">The imported csv sheet</param>
+Private Function SortCSVSheet(ByRef sheet As Excel.Worksheet)
+
+Const COURSEORDER As String = "05,06,07,08,09,EF,Q1,Q2"
+
+With sheet.ListObjects(sheet.name).Sort
+    .SortFields.Clear
+    .SortFields.Add2 Key:=Range(sheet.name & "[Column2]"), SortOn:= _
+        xlSortOnValues, Order:=xlAscending, CustomOrder:=COURSEORDER, DataOption:=xlSortNormal
+    .SortFields.Add2 Key:=Range(sheet.name & "[Column4]"), SortOn:=xlSortOnValues, _
+        Order:=xlAscending, DataOption:=xlSortNormal
+    .SortFields.Add2 Key:=Range(sheet.name & "[Column6]"), SortOn:=xlSortOnValues, _
+        Order:=xlAscending, DataOption:=xlSortNormal
+    
+    
+    .Header = xlYes
+    .MatchCase = False
+    .Orientation = xlTopToBottom
+    .SortMethod = xlPinYin
+    .Apply
+End With
+
+End Function
+
 '''<summary>Export the given course plan in the preset form as pdf file storing in the given path</summary>
 '''<param name="PcurrentPlan">The course plan object represents the course that needs to be exported</param>
 '''<param name="Ppath">The path where the pdf data will be stored</param.
@@ -396,7 +421,7 @@ Dim title As String
 title = PcurrentPlan.GCourseName & "-" & PcurrentPlan.GTeacher & "-" & PcurrentPlan.GClassName
 sheet.name = title
 
-If Len(title) < 12 Then
+If Len(title) < 14 Then
     With sheet.Range("C1")
         .HorizontalAlignment = Excel.xlCenter
         .VerticalAlignment = Excel.xlCenter
@@ -405,7 +430,7 @@ If Len(title) < 12 Then
         .Font.Size = 26
     End With
 Else
-    With sheet.Range("C1:D1")
+    With sheet.Range("C1:E1")
         .Merge
         .HorizontalAlignment = Excel.xlCenter
         .VerticalAlignment = Excel.xlCenter
