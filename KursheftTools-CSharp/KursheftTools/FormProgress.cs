@@ -1,12 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace KursheftTools
@@ -46,7 +38,7 @@ namespace KursheftTools
                 ProgressL.Text = $"{mainForm.ExportedPDFs} von {ProgressBar.Maximum}";
                 if (mainForm.currentInfo != null && mainForm.currentInfo != currentExport)
                 {
-                    detailProgress.AppendText(mainForm.currentInfo + "\r\n");
+                    detailProgress.AppendText("\r\n" + mainForm.currentInfo);
                     currentExport = mainForm.currentInfo;
                 }
             }

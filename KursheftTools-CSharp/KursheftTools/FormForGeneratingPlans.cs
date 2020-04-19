@@ -13,13 +13,19 @@ namespace KursheftTools
     public partial class FormForGeneratingPlans : Form
     {
         private Excel.Worksheet noteBoard;
+        //Stores how many Pdfs are exported yet
+        //It is a class member mainly because of the progress window
+        //Only so can the data transport between threads possible
         public int ExportedPDFs = 0;
+        //The information to show on the progress window
         public string currentInfo;
         private string PDFStorePath;
         private string LogoStorePath;
         private string[] PDFClasses;
         private DateTime[] Periods;
         private DataTable coursePlan;
+        //Change if there is more grades
+        //ex. "10" for the Realschule und Hauptschule
         private static readonly string[] VALIDGRADES = new string[8] { "05", "06", "07", "08", "09", "EF", "Q1", "Q2" };
 
         /// <summary>
@@ -80,6 +86,7 @@ namespace KursheftTools
         /// </summary>
         private void btnAccept_Click(object sender, EventArgs e)
         {
+            //Set the dialog result to none to avoid automatic close of the form 
             DialogResult = DialogResult.None;
             Color RED = Color.FromArgb(255, 192, 192);
             //Reset the colors
@@ -123,9 +130,12 @@ namespace KursheftTools
                 //Write the text into the variables
                 PDFStorePath = StoredIn.Text;
                 LogoStorePath = LogoPath.Text;
+                //Get all the classes that need to be exported
+                //If the user inputed 05, then the array will contain 05a, 05b, 05c, 05d, 05e
+                //Change the following if there is more or less classes
                 string[] GradesFromTB = Grades.Text.Split(';');
                 List<string> grds = new List<string>();
-                string[] Classes = new string[5] { "a", "b", "c", "d", "e" };
+                string[] Classes = new string[5] { "a", "b", "c", "d", "e"};
                 foreach (string s in GradesFromTB)
                 {
                     if (s == "Q1" || s == "Q2")
@@ -138,12 +148,19 @@ namespace KursheftTools
                         {
                             grds.Add(s + cls);
                         }
+                        if (s == "EF")
+                        {
+                            //I have not thought that EF has a f class
+                            grds.Add(s + "f");
+                        }
                     }
                 }
 
                 PDFClasses = grds.ToArray();
 
+
                 //Call the export function
+                //This will process the datatable, start the export and show a progress window
                 ExportPlans();
 
                 MessageBox.Show($"{ExportedPDFs} PDF-Datei wurde erfolgreich exportiert unter\r\n {PDFStorePath}", "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -192,6 +209,8 @@ namespace KursheftTools
                     //Traverse the list of subjects
                     foreach (var currentSubject in subjectList)
                     {
+                        //Check the subject and remove the illegal chars
+                        //As the subjectList contains the strings like {Subject = GE} etc. 
                         string a = currentSubject.ToString().Remove(0, 12);
                         char[] cA = a.ToCharArray();
                         a = "";
@@ -237,6 +256,8 @@ namespace KursheftTools
                         }
                     }
                 }
+                //If there is no course for this class, the there would be an exception thrown by .CopyToDataTable()
+                //Therefore, catch this exception and just continue to the next class
                 catch (InvalidOperationException)
                 {
                     continue;
@@ -272,7 +293,8 @@ namespace KursheftTools
                 ExportedPDFs =  -1;
             }
 
-            //progressT.Abort();
+            //Close the progress window
+            progressT.Abort();
             System.Diagnostics.Debug.WriteLine($"{ExportedPDFs} wurde exportiert unter: {PDFStorePath}");
         }
     }
