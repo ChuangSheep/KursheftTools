@@ -30,6 +30,9 @@ namespace KursheftTools
         {
         }
 
+        /// <summary>
+        /// Check the info in the main form every 100ms
+        /// </summary>
         private void timer1_Tick(object sender, EventArgs e)
         {
             if (ProgressBar.Maximum > mainForm.ExportedPDFs)

@@ -11,6 +11,9 @@ Release/
 bin/
 obj/
 
+#Ignore the release folder
+Releases/
+
 #Ignore the installation project
 **/Installation/*
 **/BSKursheftTools/*

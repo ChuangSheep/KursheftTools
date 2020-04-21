@@ -11,8 +11,10 @@ Public storedPath As String
 Public grades As Variant
 '''<summary>The dialog result for "FormForGeneratingCoursebook</summary>
 Public dialogResult As Boolean
-'''<summary>The path where the logo is stored</summary>
-Public Const LogoPath As String = "F:\repos\LehrplanTools\LehrplanTools\img\LOGO.png"
+'''<summary>The path where the logo is stored
+'''         Leave this string as an empty string ("") to not show the logo
+'''</summary>
+Public Const LogoPath As String = ""
 
 
 
@@ -141,136 +143,137 @@ If dialogResult Then
             For Each gradeL In grades
                 'If the grade is Q1 or Q2, or the grade between 05-09
                 If gradeL = courseListS.Cells(i, 2) Or gradeL = Left(courseListS.Cells(i, 2), 2) Then
-                    If (courseListS.Cells(i, 1) = "" Or courseListS.Cells(i, 2) = "") Then
+                    If (Not (courseListS.Cells(i, 1) = "" Or courseListS.Cells(i, 2) = "" Or courseListS.Cells(i, 3) = "")) Then
                         'jump the line without a course number or without a class
                         Debug.Print "course list csv empty course number: line: " & CStr(i)
-                    ElseIf ((currentCourseClass = courseListS.Cells(i, 2)) And (currentCourseName = courseListS.Cells(i, 4))) Then
-                        'If the current course number and so as the same class is also for this line
+                        If ((currentCourseClass = courseListS.Cells(i, 2)) And (currentCourseName = courseListS.Cells(i, 4))) Then
+                            'If the current course number and so as the same class is also for this line
                         
-                        'Then If the weekday is not added, add it to the array
-                        If Not ((dts(GetArrayLength(dts) - 1)) = getNearestDateForWeekday(courseListS.Cells(i, 6), datePeriods(0))) Then
-                            ReDim Preserve dts(GetArrayLength(dts))
-                            dts(GetArrayLength(dts) - 1) = getNearestDateForWeekday(courseListS.Cells(i, 6), datePeriods(0))
-                            ReDim Preserve isRegular(GetArrayLength(isRegular))
-                            isRegular(GetArrayLength(isRegular) - 1) = courseListS.Cells(i, 8).value
-                        ElseIf (courseListS.Cells(i, 8).value <> isRegular(GetArrayLength(isRegular) - 1)) And (isRegular(GetArrayLength(isRegular) - 1) <> "") Then
-                            isRegular(GetArrayLength(isRegular) - 1) = courseListS.Cells(i, 8).value
+                            'Then If the weekday is not added, add it to the array
+                            If Not ((dts(GetArrayLength(dts) - 1)) = getNearestDateForWeekday(courseListS.Cells(i, 6), datePeriods(0))) Then
+                                ReDim Preserve dts(GetArrayLength(dts))
+                                dts(GetArrayLength(dts) - 1) = getNearestDateForWeekday(courseListS.Cells(i, 6), datePeriods(0))
+                                ReDim Preserve isRegular(GetArrayLength(isRegular))
+                                isRegular(GetArrayLength(isRegular) - 1) = courseListS.Cells(i, 8).value
+                            ElseIf (courseListS.Cells(i, 8).value <> isRegular(GetArrayLength(isRegular) - 1)) And (isRegular(GetArrayLength(isRegular) - 1) <> "") Then
+                                isRegular(GetArrayLength(isRegular) - 1) = courseListS.Cells(i, 8).value
+                            End If
+                        Else
+                            'Handle the new course now
+                            currentCourseClass = courseListS.Cells(i, 2).value
+                            currentCourseName = courseListS.Cells(i, 4).value
+                
+                            ReDim dts(0)
+                            dts(0) = getNearestDateForWeekday(courseListS.Cells(i, 6), datePeriods(0))
+                            ReDim isRegular(0)
+                            isRegular(0) = courseListS.Cells(i, 8).value
                         End If
-                    Else
-                        'Handle the new course now
-                        currentCourseClass = courseListS.Cells(i, 2).value
-                        currentCourseName = courseListS.Cells(i, 4).value
-                
-                        ReDim dts(0)
-                        dts(0) = getNearestDateForWeekday(courseListS.Cells(i, 6), datePeriods(0))
-                        ReDim isRegular(0)
-                        isRegular(0) = courseListS.Cells(i, 8).value
-                    End If
         
         
         
-                    'If all the lines for this course number with the class is processed, summary them up and export as pdf
-                    If ((currentCourseClass <> courseListS.Cells(i + 1, 2)) Or (currentCourseName <> courseListS.Cells(i + 1, 4))) Then
-                        Set currentPlan = New CoursePlan
-                        Call currentPlan.Initialize(currentCourseName, currentCourseClass, courseListS.Cells(i, 3))
+                        'If all the lines for this course number with the class is processed, summary them up and export as pdf
+                        If ((currentCourseClass <> courseListS.Cells(i + 1, 2)) Or (currentCourseName <> courseListS.Cells(i + 1, 4))) Then
+                            Set currentPlan = New CoursePlan
+                            Call currentPlan.Initialize(currentCourseName, currentCourseClass, courseListS.Cells(i, 3))
                 
-                        'sort the dts() array
-                        Dim cac
-                        cac = SortDates(dts, Array(isRegular))
-                        sortedDts = cac(0)
-                        isRegular = cac(1)
+                            'sort the dts() array
+                            Dim cac
+                            cac = SortDates(dts, Array(isRegular))
+                            sortedDts = cac(0)
+                            isRegular = cac(1)
                 
-                        Dim j As Long
-                        Dim lineDate As String
+                            Dim j As Long
+                            Dim lineDate As String
                         
                         
-                        k = 0
-                        For j = 3 To NoteboardRows Step 1
+                            k = 0
+                            For j = 3 To NoteboardRows Step 1
+                            
+                                lineDate = CStr(noteBoard.Cells(j, 2).value)
                         
-                            lineDate = CStr(noteBoard.Cells(j, 2).value)
-                        
-                            'If on even weeks but the current date is odd
-                            If isRegular(k) = "g" And Not isEvenWeek(CDate(sortedDts(k))) Then
-                            'don't process this date
-                            'If on odd weeks but the current date is even
-                            ElseIf isRegular(k) = "u" And isEvenWeek(CDate(sortedDts(k))) Then
-                                'don't process this date
-                            'Else when it is on the right week
-                            Else
-                                'Add 14 days for the dates because of the holiday
-                                If lineDate = "Anfang d. 2. Abschnitts" Then
-                                    Dim c As Byte
-                                    For c = 0 To GetArrayLength(sortedDts) - 1 Step 1
-                                        sortedDts(c) = DateAdd("ww", 2, sortedDts(c))
-                                    Next c
-                                ElseIf lineDate = "Ende des Schulhalbjahres" Or lineDate = "" Then
-                                    'Jump the title lines
+                                'If on even weeks but the current date is odd
+                                If isRegular(k) = "g" And Not isEvenWeek(CDate(sortedDts(k))) Then
+                                    'don't process this date
+                                    'If on odd weeks but the current date is even
+                                ElseIf isRegular(k) = "u" And isEvenWeek(CDate(sortedDts(k))) Then
+                                    'don't process this date
+                                'Else when it is on the right week
                                 Else
-                                    'if the date are the same
-                                    If CDate(sortedDts(k)) = DateValue(lineDate) Then
-                                        'Initialize the current daynote
-                                        Dim currentDayNt As Daynote
-                                        Set currentDayNt = New Daynote
-                                        currentDayNt.Initialize (sortedDts(k))
+                                    'Add 14 days for the dates because of the holiday
+                                    If lineDate = "Anfang d. 2. Abschnitts" Then
+                                        Dim c As Byte
+                                        For c = 0 To GetArrayLength(sortedDts) - 1 Step 1
+                                            sortedDts(c) = DateAdd("ww", 2, sortedDts(c))
+                                        Next c
+                                    ElseIf lineDate = "Ende des Schulhalbjahres" Or lineDate = "" Then
+                                        'Jump the title lines
+                                    Else
+                                        'if the date are the same
+                                        If CDate(sortedDts(k)) = DateValue(lineDate) Then
+                                            'Initialize the current daynote
+                                            Dim currentDayNt As Daynote
+                                            Set currentDayNt = New Daynote
+                                            currentDayNt.Initialize (sortedDts(k))
                                         
-                                        'Get the notes
-                                        For n = 3 To 7 Step 2
-                                            Dim currentNote As String
-                                            currentNote = noteBoard.Cells(j, n).value
-                                            'If in this cell there is note
-                                            If currentNote <> "" Then
-                                                Dim currentGrade As String
-                                                currentGrade = noteBoard.Cells(j, n + 1).value
+                                            'Get the notes
+                                            For n = 3 To 7 Step 2
+                                                Dim currentNote As String
+                                                currentNote = noteBoard.Cells(j, n).value
+                                                'If in this cell there is note
+                                                If currentNote <> "" Then
+                                                    Dim currentGrade As String
+                                                    currentGrade = noteBoard.Cells(j, n + 1).value
                                                 
-                                                'If the grade fits to the current course
-                                                If (currentGrade = currentCourseClass) Or (currentGrade = Left(currentCourseClass, 2)) Or (currentGrade = "") Then
-                                                    'If the class or grade is the same as the current class, then add the note to the daynote
-                                                    Call currentDayNt.AddNote(currentNote)
+                                                    'If the grade fits to the current course
+                                                    If (currentGrade = currentCourseClass) Or (currentGrade = Left(currentCourseClass, 2)) Or (currentGrade = "") Then
+                                                        'If the class or grade is the same as the current class, then add the note to the daynote
+                                                        Call currentDayNt.AddNote(currentNote)
+                                                    End If
                                                 End If
-                                            End If
-                                        Next n
+                                            Next n
                                 
-                                        'Add the plan for this day to the course plan
-                                        Call currentPlan.AddLine(currentDayNt)
+                                            'Add the plan for this day to the course plan
+                                            Call currentPlan.AddLine(currentDayNt)
+                                        End If
                                     End If
                                 End If
-                            End If
                             
-                            'If one week passed, the add one week to the sortedDts()
-                            If (Not (lineDate = "Anfang d. 2. Abschnitts" Or lineDate = "Ende des Schulhalbjahres" Or lineDate = "")) Then
-                                If (CDate(sortedDts(k)) = DateValue(lineDate)) Then
-                                    'No matter whether the date is processed or not
-                                    'We have to add 7 days to it
-                                    'Add 7 days to the processed date
-                                    sortedDts(k) = DateAdd("ww", 1, sortedDts(k))
-                                    'So as also need to move the counter
-                                    'Add the counter or change it to 0
-                                    'This counter is to let the dates move further
-                                    If (k < (GetArrayLength(sortedDts) - 1)) Then
-                                        k = k + 1
-                                    Else
-                                    k = 0
-                                    End If
+                                'If one week passed, the add one week to the sortedDts()
+                                If (Not (lineDate = "Anfang d. 2. Abschnitts" Or lineDate = "Ende des Schulhalbjahres" Or lineDate = "")) Then
+                                    If (CDate(sortedDts(k)) = DateValue(lineDate)) Then
+                                        'No matter whether the date is processed or not
+                                        'We have to add 7 days to it
+                                        'Add 7 days to the processed date
+                                        sortedDts(k) = DateAdd("ww", 1, sortedDts(k))
+                                        'So as also need to move the counter
+                                        'Add the counter or change it to 0
+                                        'This counter is to let the dates move further
+                                        If (k < (GetArrayLength(sortedDts) - 1)) Then
+                                            k = k + 1
+                                        Else
+                                        k = 0
+                                        End If
+                                End If
                             End If
+                            Next j
+                    
+                    
+                            'When the whole noteBoard is processed
+                            'Export the plan as pdf
+                            Dim tit As String
+                            tit = currentPlan.GCourseName & "-" & currentPlan.GTeacher & "-" & currentPlan.GClassName & ".pdf"
+                            tit = Replace(tit, "/", ".")
+                    
+                            'If the pdf is not exported successfully, print the debug info
+                            If Not ExportPDF(currentPlan, storedPath & "\" & tit, exportingSheet) Then
+                                Debug.Print "The pdf export is not successful"
+                                Debug.Print currentPlan.GCourseName & " " & currentPlan.GClassName & " " & currentPlan.GTeacher
+                            Else
+                                exportCounter = exportCounter + 1
+                            End If
+                    
                         End If
-                        Next j
-                    
-                    
-                        'When the whole noteBoard is processed
-                        'Export the plan as pdf
-                        Dim tit As String
-                        tit = currentPlan.GCourseName & "-" & currentPlan.GTeacher & "-" & currentPlan.GClassName & ".pdf"
-                    
-                        'If the pdf is not exported successfully, print the debug info
-                        If Not ExportPDF(currentPlan, storedPath & "\" & tit, exportingSheet) Then
-                            Debug.Print "The pdf export is not successful"
-                            Debug.Print currentPlan.GCourseName & " " & currentPlan.GClassName & " " & currentPlan.GTeacher
-                        Else
-                            exportCounter = exportCounter + 1
-                        End If
-                    
                     End If
-                    
                 Exit For
                 End If
                 
@@ -306,6 +309,7 @@ If dialogResult Then
     End If
     
 Application.StatusBar = False
+
 
 End Sub
 
@@ -419,6 +423,7 @@ Set sheet = PpresetSheet
 'Set the title
 Dim title As String
 title = PcurrentPlan.GCourseName & "-" & PcurrentPlan.GTeacher & "-" & PcurrentPlan.GClassName
+title = Replace(title, "/", ".")
 sheet.name = title
 
 If Len(title) < 14 Then
@@ -451,7 +456,8 @@ CurrentNotesFromPlan = PcurrentPlan.GetNotesForExport()
 
 'Test if the notes are too much
 If GetArrayLength(CurrentDatesFromPlan) > 89 Then
-    Err.Raise vbObjectError + 3011, "KursheftTools.KursheftGenerieren.ExportPDF", "The notes are too much(more than 89): " & CStr(GetArrayLength(CurrentNotesFromPlan))
+    Debug.Print "The current course is too long; The export could be incorrect. "
+    'Err.Raise vbObjectError + 3011, "KursheftTools.KursheftGenerieren.ExportPDF", "The notes are too much(more than 89): " & CStr(GetArrayLength(CurrentNotesFromPlan))
 End If
 
 Dim i As Integer

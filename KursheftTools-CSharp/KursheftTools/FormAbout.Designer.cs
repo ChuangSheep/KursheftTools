@@ -35,6 +35,7 @@
             this.ProgrammNameL = new System.Windows.Forms.Label();
             this.DateL = new System.Windows.Forms.Label();
             this.ContactLL = new System.Windows.Forms.LinkLabel();
+            this.GithubL = new System.Windows.Forms.LinkLabel();
             this.SuspendLayout();
             // 
             // CopyrightNameL
@@ -107,11 +108,21 @@
             this.ContactLL.TabIndex = 6;
             this.ContactLL.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.ContactLL_LinkClicked);
             // 
+            // GithubL
+            // 
+            this.GithubL.AutoSize = true;
+            this.GithubL.Location = new System.Drawing.Point(35, 363);
+            this.GithubL.Name = "GithubL";
+            this.GithubL.Size = new System.Drawing.Size(0, 15);
+            this.GithubL.TabIndex = 7;
+            this.GithubL.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.GithubL_LinkClicked);
+            // 
             // FormAbout
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(648, 390);
+            this.Controls.Add(this.GithubL);
             this.Controls.Add(this.ContactLL);
             this.Controls.Add(this.DateL);
             this.Controls.Add(this.ProgrammNameL);
@@ -142,5 +153,6 @@
         private System.Windows.Forms.Label ProgrammNameL;
         private System.Windows.Forms.Label DateL;
         private System.Windows.Forms.LinkLabel ContactLL;
+        private System.Windows.Forms.LinkLabel GithubL;
     }
 }

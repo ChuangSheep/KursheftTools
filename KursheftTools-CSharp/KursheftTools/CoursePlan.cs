@@ -312,7 +312,7 @@ namespace KursheftTools
                             if (currentNote != null)
                             {
                                 //If the grade fits to the current course
-                                if (currentLineGrade == this.GetGrade() || currentLineGrade == null)
+                                if (currentLineGrade == this.ClassName || currentLineGrade == this.GetGrade() || currentLineGrade == null)
                                 {
                                     currentDaynotes.AddNote(currentNote);
                                 }

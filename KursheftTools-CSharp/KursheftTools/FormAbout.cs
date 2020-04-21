@@ -22,6 +22,10 @@ namespace KursheftTools
             ContactLL.Text = "Found a bug or have suggesstions? Contact me at chuang__@outlook.com";
             ContactLL.Links.Add(48, 20, "mailto:chuang__@outlook.com?Subject=KursheftTools%20Feedback");
 
+            GithubL.Text = "Or create an issue on Github";
+            GithubL.Links.Add(22, 6, "https://github.com/ChuangSheep/KursheftTools");
+
+
             LicenseRTB.Text = "Licensed under the Apache License, Version 2.0 (the \"License\");\r\n" +
                     "you may not use this file except in compliance with the License.\r\n\r\n" +
                     "You may obtain a copy of the License at\r\n\r\n" +
@@ -44,6 +48,16 @@ namespace KursheftTools
         private void LicenseRTB_LinkClicked(object sender, LinkClickedEventArgs e)
         {
             System.Diagnostics.Process.Start(e.LinkText);
+        }
+
+        private void GithubL_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            GithubL.Links[GithubL.Links.IndexOf(e.Link)].Visited = true;
+            string targetUrl = e.Link.LinkData as string;
+            if (string.IsNullOrEmpty(targetUrl))
+                System.Diagnostics.Debug.Write("No Link address found!");
+            else
+                System.Diagnostics.Process.Start(targetUrl);
         }
     }
 }

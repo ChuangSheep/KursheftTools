@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Office = Microsoft.Office.Core;
 using Excel = Microsoft.Office.Interop.Excel;
-using Color = System.Drawing.Color;
 using System.Windows.Forms;
 using Microsoft.CSharp.RuntimeBinder;
 using System.Data;
