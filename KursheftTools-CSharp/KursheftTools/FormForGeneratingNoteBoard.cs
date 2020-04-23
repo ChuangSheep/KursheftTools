@@ -1,14 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using Office = Microsoft.Office.Core;
 using Excel = Microsoft.Office.Interop.Excel;
 
 namespace KursheftTools
@@ -32,22 +26,22 @@ namespace KursheftTools
             DateTime[] periods = new DateTime[3];
             //Check the validity of the given dates
             //Store the text boxes into an array called textboxs
-            TextBox[] textboxs = new TextBox[3] { StartPeriod1, StartPeriod2, EndHY };
+            TextBox[] textboxes = new TextBox[3] { StartPeriod1, StartPeriod2, EndHY };
 
             bool allRight = true;
-            foreach (TextBox tB in textboxs)
+            foreach (TextBox tbx in textboxes)
             {
-                tB.BackColor = Color.White;
+                tbx.BackColor = Color.White;
                 try
                 {
-                    periods[Array.IndexOf(textboxs, tB)] = DateTime.ParseExact(tB.Text, "dd-MM-yyyy", new CultureInfo("de-DE"));
-                    if (DateTimeCalcUtils.GetWeekday(periods[Array.IndexOf(textboxs, tB)]) == "Sa" ||
-                        DateTimeCalcUtils.GetWeekday(periods[Array.IndexOf(textboxs, tB)]) == "So") throw new FormatException("The dates could not be on the weekends");
+                    periods[Array.IndexOf(textboxes, tbx)] = DateTime.ParseExact(tbx.Text, "dd-MM-yyyy", new CultureInfo("de-DE"));
+                    if (DateTimeCalcUtils.GetWeekday(periods[Array.IndexOf(textboxes, tbx)]) == "Sa" ||
+                        DateTimeCalcUtils.GetWeekday(periods[Array.IndexOf(textboxes, tbx)]) == "So") throw new FormatException("The dates could not be on the weekends");
                 }
                 catch (FormatException)
                 {
                     allRight = false;
-                    tB.BackColor = RED;
+                    tbx.BackColor = RED;
                 }
 
                 catch (Exception err)
@@ -69,7 +63,7 @@ namespace KursheftTools
                     catch (ArgumentException)
                     {
                         allRight = false;
-                        textboxs[i + 1].BackColor = RED;
+                        textboxes[i + 1].BackColor = RED;
                     }
 
                 }
@@ -80,7 +74,7 @@ namespace KursheftTools
                 this.DialogResult = DialogResult.Yes;
                 this.Hide();
                 if (CreateBoard(periods)) MessageBox.Show("Ein leerer Bemerkungsbogen wurde erfolgreich generiert.\r\nAbschnitts: " +
-                    $"{periods[0].ToString("dd-MM-yyyy")} ~ {periods[1].ToString("dd-MM-yyyy")} ~ {periods[2].ToString("dd-MM-yyyy")}", 
+                    $"{periods[0]:dd-MM-yyyy} ~ {periods[1]:dd-MM-yyyy} ~ {periods[2]:dd-MM-yyyy}", 
                     "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
             }

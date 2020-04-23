@@ -8,9 +8,8 @@ namespace KursheftTools
 
         public ProgressBar Progressbar { get { return this.ProgressBar; } }
         public TextBox InfoBoard { get { return this.detailProgress; } }
-        private string currentExport = "";
-
-        FormForGeneratingPlans mainForm = null;
+        private string _currentExport = "";
+        readonly FormForGeneratingPlans mainForm = null;
         public FormProgress(FormForGeneratingPlans mForm, int maximalLength)
         {
             InitializeComponent();
@@ -25,11 +24,6 @@ namespace KursheftTools
         }
 
         
-
-        private void FormProgress_Load(object sender, EventArgs e)
-        {
-        }
-
         /// <summary>
         /// Check the info in the main form every 100ms
         /// </summary>
@@ -39,10 +33,10 @@ namespace KursheftTools
             {
                 ProgressBar.Value = mainForm.ExportedPDFs;
                 ProgressL.Text = $"{mainForm.ExportedPDFs} von {ProgressBar.Maximum}";
-                if (mainForm.currentInfo != null && mainForm.currentInfo != currentExport)
+                if (mainForm.CurrentInfo != null && mainForm.CurrentInfo != _currentExport)
                 {
-                    detailProgress.AppendText("\r\n" + mainForm.currentInfo);
-                    currentExport = mainForm.currentInfo;
+                    detailProgress.AppendText("\r\n" + mainForm.CurrentInfo);
+                    _currentExport = mainForm.CurrentInfo;
                 }
             }
             else

@@ -47,20 +47,6 @@ namespace KursheftTools
 
 
         /// <summary>
-        /// Gets the weeks between two dates
-        /// 6 days will be seen as 0 week
-        /// </summary>
-        /// <param name="start">the start date</param>
-        /// <param name="end">the end date</param>
-        /// <returns></returns>
-        public static int getWeeksBetween(DateTime start, DateTime end)
-        {
-            if (start > end) return 0;
-            return (int)Math.Ceiling((double)BusinessDaysUntil(start, end) / 5);
-        }
-
-
-        /// <summary>
         /// get the short form of a weekday from an integer
         /// The format is De-DE
         /// </summary>
@@ -166,7 +152,7 @@ namespace KursheftTools
         /// <param name="lastDay">Last day in the time interval</param>
         /// <returns>Number of business days during the 'span'</returns>
         /// <exception cref="ArgumentException"></exception>
-        /// See: https://stackoverflow.com/questions/1617049/calculate-the-number-of-business-days-between-two-dates
+        // See: https://stackoverflow.com/questions/1617049/calculate-the-number-of-business-days-between-two-dates
         public static int BusinessDaysUntil(DateTime firstDay, DateTime lastDay)
         {
             // Get date-only portion of date, without its time.

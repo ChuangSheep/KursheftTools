@@ -2,7 +2,7 @@
 <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui" onLoad="Ribbon_Load">
   <ribbon>
     <tabs>
-      <tab id="LPTool" label="Kursheft Tools">
+      <tab id="KHTool" label="Kursheft Tools">
 
         <group id="NewStartGrp"
                label="Neu Anfangen">

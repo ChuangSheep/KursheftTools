@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System;
 using Excel = Microsoft.Office.Interop.Excel;
-using System.Text;
 
 namespace KursheftTools
 {
@@ -14,23 +13,24 @@ namespace KursheftTools
         /// <summary>
         /// A list of Daynotes objects contains all the notes for this course in this half year
         /// </summary>
-        private List<Daynote> Lines;
-        private string CourseName { get; }
-        private string ClassName { get; }
-        private string Teacher { get; }
+        private readonly List<Daynote> _lines;
+
+        private readonly string _courseName;
+        private readonly string _className;
+        private readonly string _teacher;
 
         /// <summary>
         /// Class constructor
         /// </summary>
-        /// <param name="CourseName">The name of this course as string</param>
-        /// <param name="ClassName">The name of the class of the course as string</param>
-        /// <param name="Teacher">The name of the teacher as string</param>
-        public CoursePlan(string CourseName, string ClassName, string Teacher)
+        /// <param name="courseName">The name of this course as string</param>
+        /// <param name="className">The name of the class of the course as string</param>
+        /// <param name="teacher">The name of the teacher as string</param>
+        public CoursePlan(string courseName, string className, string teacher)
         {
-            Lines = new List<Daynote>();
-            this.CourseName = CourseName;
-            this.ClassName = ClassName;
-            this.Teacher = Teacher;
+            _lines = new List<Daynote>();
+            this._courseName = courseName;
+            this._className = className;
+            this._teacher = teacher;
         }
 
         /// <summary>
@@ -39,16 +39,16 @@ namespace KursheftTools
         /// <param name="daynotes">A Daynotes object contains all the notes on one day</param>
         public void AddLine(Daynote daynotes)
         {
-            Lines.Add(daynotes);
+            _lines.Add(daynotes);
         }
 
         /// <summary>
-        /// Get the title of this course
+        /// Get the title of this course with .pdf
         /// </summary>
         /// <returns>A string represents the title of this course. </returns>
         public string GetTitle()
         {
-            return $"{this.CourseName}-{this.Teacher}-{this.ClassName}.pdf";
+            return $"{this._courseName}-{this._teacher}-{this._className}.pdf";
         }
         /// <summary>
         /// Get the grade of this course
@@ -56,24 +56,24 @@ namespace KursheftTools
         /// <returns>The grade of this course as string</returns>
         public string GetGrade()
         {
-            return ClassName.Length == 2 ? ClassName : ClassName.Substring(0, 2);
+            return _className.Length == 2 ? _className : _className.Substring(0, 2);
         }
 
         /// <summary>
         /// Export this course to the given path as pdf
         /// </summary>
-        /// <param name="Periods">An array of DateTime contains 3 items representing the start of the year, 
+        /// <param name="periods">An array of DateTime contains 3 items representing the start of the year, 
         ///                     the start of the second period and the end of the half year.</param>
-        /// <param name="StoredPath">The path where the exported pdf should be stored.
+        /// <param name="storedPath">The path where the exported pdf should be stored.
         ///                     This path does NOT contain the name of this pdf file.
         ///                     The name will be like this format:
         ///                     CourseName-Teacher-Class.pdf</param>
-        /// <param name="LogoFilePath">A optional parameter represents where the logo is stored. 
+        /// <param name="logoFilePath">A optional parameter represents where the logo is stored. 
         ///                     If this is not given, then the logo will be replaced by the words "Sollstuden für Kurs"</param>
         /// <returns>A boolean value represents whether the export is successful or not.</returns>
-        public bool ExportAsPDF(DateTime[] Periods, string StoredPath,  string LogoFilePath = "default")
+        public bool ExportAsPDF(DateTime[] periods, string storedPath,  string logoFilePath = "default")
         {
-            string title = $"{this.CourseName}-{this.Teacher}-{this.ClassName}";
+            string title = $"{this._courseName}-{this._teacher}-{this._className}";
             PdfDocument document = new PdfDocument();
             PdfPage page = document.AddPage();
             XGraphics xGps = XGraphics.FromPdfPage(page);
@@ -81,14 +81,14 @@ namespace KursheftTools
             #region Preset Format
             double ROWS = 30;
             //double SMALLWEEKDAYRECTWIDTH = Formats.getPixel(5);
-            double SMALLDATERECTWIDTH = Formats.getPixel(30);
-            double SMALLNOTERECTWIDTH = Formats.getPixel(55);
-            double SMALLRECTHEIGHT = Formats.getPixel(7);
-            double TOPHEIGHT = Formats.getPixel(40);
-            double LEFTBLANK = Formats.getPixel(10);
-            double CENTERBLANK = Formats.getPixel(20);
-            double RIGHTBLANK = Formats.getPixel(10);
-            double OFFSET = Formats.getPixel(1.5);
+            double SMALLDATERECTWIDTH = Formats.GetPixel(30);
+            double SMALLNOTERECTWIDTH = Formats.GetPixel(55);
+            double SMALLRECTHEIGHT = Formats.GetPixel(7);
+            double TOPHEIGHT = Formats.GetPixel(40);
+            double LEFTBLANK = Formats.GetPixel(10);
+            double CENTERBLANK = Formats.GetPixel(20);
+            //double RIGHTBLANK = Formats.getPixel(10);
+            double OFFSET = Formats.GetPixel(1.5);
             //IN PIXEL
             XPoint[] smallRectStartCo = new XPoint[4] { new XPoint(), new XPoint(), new XPoint(), new XPoint() };
 
@@ -106,16 +106,16 @@ namespace KursheftTools
 
             #region Responsive Design & Error check
 
-            if (this.Lines.Count > ROWS * 2)
+            if (this._lines.Count > ROWS * 2)
             {
                 ROWS *= 1.3;
-                SMALLRECTHEIGHT = Formats.getPixel(6);
+                SMALLRECTHEIGHT = Formats.GetPixel(6);
             }
-            if (this.Lines.Count > ROWS * 2)
+            if (this._lines.Count > ROWS * 2)
             {
                 ROWS *= 1.3;
-                SMALLRECTHEIGHT = Formats.getPixel(4.5);
-                OFFSET = Formats.getPixel(1);
+                SMALLRECTHEIGHT = Formats.GetPixel(4.5);
+                OFFSET = Formats.GetPixel(1);
 
                 boldFont = new XFont("Times New Roman", 8, XFontStyle.Bold);
                 regularFont = new XFont("Times New Roman", 8);
@@ -123,8 +123,8 @@ namespace KursheftTools
             //Round it to a whole number
             ROWS = Math.Round(ROWS);
             //If the data is too long or too short
-            if (this.Lines.Count > ROWS * 2) throw new ArgumentException("the weeklyplan is too long: " + this.Lines.Count + " : " + this.CourseName + this.ClassName + this.Teacher);
-            else if (Lines.Count < 3) throw new ArgumentException("the weeklyplan is too short: " + this.Lines.Count + " course: " + this.CourseName + this.ClassName + this.Teacher);
+            if (this._lines.Count > ROWS * 2) throw new ArgumentException("the weeklyplan is too long: " + this._lines.Count + " : " + this._courseName + this._className + this._teacher);
+            else if (_lines.Count < 3) throw new ArgumentException("the weeklyplan is too short: " + this._lines.Count + " course: " + this._courseName + this._className + this._teacher);
             #endregion
 
             #region Points
@@ -139,66 +139,68 @@ namespace KursheftTools
             smallRectStartCo[3].Y = TOPHEIGHT;
 
             #endregion
+
             #region HEAD
             //Set the Logo
-            if (LogoFilePath == "default")
+            if (logoFilePath == "default")
             {
-                XRect sTitle = new XRect(0, 0, Formats.getPixel(46), Formats.getPixel(30));
-                xGps.DrawString("Sollstuden für Kurs", subtitleFont, XBrushes.Gray, sTitle, XStringFormats.TopLeft);
+                XRect rectSubtitle = new XRect(0, 0, Formats.GetPixel(46), Formats.GetPixel(30));
+                xGps.DrawString("Sollstuden für Kurs", subtitleFont, XBrushes.Gray, rectSubtitle, XStringFormats.TopLeft);
             }
             else
             {
-                XImage lgIcon = XImage.FromFile(LogoFilePath);
+                XImage lgIcon = XImage.FromFile(logoFilePath);
                 if (lgIcon == null) throw new ArgumentNullException("lgIcon", "the stream of the icon is null");
-                xGps.DrawImage(lgIcon, 0, 0, Formats.getPixel(46), Formats.getPixel(30));
+                xGps.DrawImage(lgIcon, 0, 0, Formats.GetPixel(46), Formats.GetPixel(30));
 
-                XRect sTitle = new XRect(Formats.getPixel(55), Formats.getPixel(2), Formats.getPixel(100), Formats.getPixel(10));
-                xGps.DrawString("Sollstuden für Kurs", subtitleFont, XBrushes.Gray, sTitle, XStringFormats.TopLeft);
+                XRect rectSubtitle = new XRect(Formats.GetPixel(55), Formats.GetPixel(2), Formats.GetPixel(100), Formats.GetPixel(10));
+                xGps.DrawString("Sollstuden für Kurs", subtitleFont, XBrushes.Gray, rectSubtitle, XStringFormats.TopLeft);
             }
 
             //Set the title
-            XRect rectTitle = new XRect(Formats.getPixel(55), Formats.getPixel(10), Formats.getPixel(100), Formats.getPixel(20));
+            XRect rectTitle = new XRect(Formats.GetPixel(55), Formats.GetPixel(10), Formats.GetPixel(100), Formats.GetPixel(20));
             xGps.DrawString(title, titleFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
 
             //Set the current date and the half year
             DateTime dtNow = DateTime.Now;
-            XRect rectDate = new XRect(Formats.getPixel(180), Formats.getPixel(2), Formats.getPixel(28), Formats.getPixel(5));
+            XRect rectDate = new XRect(Formats.GetPixel(180), Formats.GetPixel(2), Formats.GetPixel(28), Formats.GetPixel(5));
             xGps.DrawString("Stand: " + dtNow.ToString("dd-MM-yyyy"), regularFont, XBrushes.Gray, rectDate, XStringFormats.TopRight);
 
-            XRect rectYear = new XRect(Formats.getPixel(180), Formats.getPixel(7), Formats.getPixel(28), Formats.getPixel(5));
-            xGps.DrawString(DateTimeCalcUtils.GetHalfYear(this.Lines[0].GetDate()), boldFont, XBrushes.Gray, rectYear, XStringFormats.TopRight);
+            XRect rectYear = new XRect(Formats.GetPixel(180), Formats.GetPixel(7), Formats.GetPixel(28), Formats.GetPixel(5));
+            xGps.DrawString(DateTimeCalcUtils.GetHalfYear(this._lines[0].GetDate()), boldFont, XBrushes.Gray, rectYear, XStringFormats.TopRight);
             #endregion
 
             #region Main Body
-            XRect currentLine;
+
+            XRect rectCurrentLine;
             //The first column
-            for (int i = 0; i < this.Lines.Count && i < ROWS; i++)
+            for (int i = 0; i < this._lines.Count && i < ROWS; i++)
             {
                 //The color
                 if (i % 2 != 0) xGps.DrawRectangle(brushes[0], new XRect(new XPoint(smallRectStartCo[0].X, smallRectStartCo[0].Y - OFFSET), new XPoint(smallRectStartCo[1].X + SMALLNOTERECTWIDTH, smallRectStartCo[1].Y + SMALLRECTHEIGHT - OFFSET)));
                 else xGps.DrawRectangle(brushes[1], new XRect(new XPoint(smallRectStartCo[0].X, smallRectStartCo[0].Y - OFFSET), new XPoint(smallRectStartCo[1].X + SMALLNOTERECTWIDTH, smallRectStartCo[1].Y + SMALLRECTHEIGHT - OFFSET)));
 
-                currentLine = new XRect(smallRectStartCo[0], new XPoint(LEFTBLANK + SMALLDATERECTWIDTH, smallRectStartCo[0].Y + SMALLRECTHEIGHT));
-                xtf.DrawString(Lines[i].GetWeekdayS() + "  " + Lines[i].GetDateS(), boldFont, XBrushes.Black, currentLine, XStringFormats.TopLeft);
-                currentLine = new XRect(smallRectStartCo[1], new XPoint(smallRectStartCo[1].X + SMALLNOTERECTWIDTH, smallRectStartCo[1].Y + SMALLRECTHEIGHT));
-                xtf.DrawString(Lines[i].GetNotes(), regularFont, XBrushes.Black, currentLine, XStringFormats.TopLeft);
+                rectCurrentLine = new XRect(smallRectStartCo[0], new XPoint(LEFTBLANK + SMALLDATERECTWIDTH, smallRectStartCo[0].Y + SMALLRECTHEIGHT));
+                xtf.DrawString(_lines[i].GetWeekdayS() + "  " + _lines[i].GetDateS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
+                rectCurrentLine = new XRect(smallRectStartCo[1], new XPoint(smallRectStartCo[1].X + SMALLNOTERECTWIDTH, smallRectStartCo[1].Y + SMALLRECTHEIGHT));
+                xtf.DrawString(_lines[i].GetNotes(), regularFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
 
                 smallRectStartCo[0].Y += SMALLRECTHEIGHT;
                 smallRectStartCo[1].Y += SMALLRECTHEIGHT;
             }
-            //The second column
-            if (this.Lines.Count > ROWS)
+            //The second column if exists
+            if (this._lines.Count > ROWS)
             {
-                for (int i = 0; i < Lines.Count - ROWS && i < ROWS; i++)
+                for (int i = 0; i < _lines.Count - ROWS && i < ROWS; i++)
                 {
                     //The color
                     if (i % 2 != 0) xGps.DrawRectangle(brushes[0], new XRect(new XPoint(smallRectStartCo[2].X, smallRectStartCo[2].Y - OFFSET), new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[3].Y + SMALLRECTHEIGHT - OFFSET)));
                     else xGps.DrawRectangle(brushes[1], new XRect(new XPoint(smallRectStartCo[2].X, smallRectStartCo[2].Y - OFFSET), new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[3].Y + SMALLRECTHEIGHT - OFFSET)));
 
-                    currentLine = new XRect(smallRectStartCo[2], new XPoint(smallRectStartCo[3].X, smallRectStartCo[2].Y + SMALLRECTHEIGHT));
-                    xtf.DrawString(Lines[i + (int)ROWS].GetWeekdayS() + "  " + Lines[i + (int)ROWS].GetDateS(), boldFont, XBrushes.Black, currentLine, XStringFormats.TopLeft);
-                    currentLine = new XRect(smallRectStartCo[3], new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[3].Y + SMALLRECTHEIGHT));
-                    xtf.DrawString(Lines[i + (int)ROWS].GetNotes(), regularFont, XBrushes.Black, currentLine, XStringFormats.TopLeft);
+                    rectCurrentLine = new XRect(smallRectStartCo[2], new XPoint(smallRectStartCo[3].X, smallRectStartCo[2].Y + SMALLRECTHEIGHT));
+                    xtf.DrawString(_lines[i + (int)ROWS].GetWeekdayS() + "  " + _lines[i + (int)ROWS].GetDateS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
+                    rectCurrentLine = new XRect(smallRectStartCo[3], new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[3].Y + SMALLRECTHEIGHT));
+                    xtf.DrawString(_lines[i + (int)ROWS].GetNotes(), regularFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
 
                     smallRectStartCo[2].Y += SMALLRECTHEIGHT;
                     smallRectStartCo[3].Y += SMALLRECTHEIGHT;
@@ -207,6 +209,7 @@ namespace KursheftTools
             #endregion
 
             #region Bottom
+
             XRect rect;
             const string INFO1 = "Alle Termine dieser Liste müssen in der Kursmappe eingetragen sein," +
                             "auch die unterrichtsfreien Tage. Alle Termine(außer den Ferien)" +
@@ -217,22 +220,25 @@ namespace KursheftTools
                                 "Kursheft aufgeführt werden. Diese Stunden dürfen auf dem " +
                                 "Zeugnis aber nicht als Fehlstunden vermerkt werden.";
             string OUTPUT = INFO1 + "\r\n\r\n" + INFO2;
-            if (this.Lines.Count - ROWS > 0)
+
+            //If there is no lines at the second column, put the info direct at the second line. 
+            if (this._lines.Count - ROWS > 0)
             {
                 rect = new XRect(smallRectStartCo[2].X, smallRectStartCo[2].Y + SMALLRECTHEIGHT, SMALLDATERECTWIDTH + SMALLNOTERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[2].Y + SMALLRECTHEIGHT));
                 xtf.DrawString(OUTPUT, smallNoteFont, XBrushes.Black, rect, XStringFormats.TopLeft);
             }
+            //Otherwise, add spaces
             else
             {
                 rect = new XRect(smallRectStartCo[2].X, smallRectStartCo[2].Y, SMALLDATERECTWIDTH + SMALLNOTERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[2].Y + SMALLRECTHEIGHT));
                 xtf.DrawString(OUTPUT, smallNoteFont, XBrushes.Black, rect, XStringFormats.TopLeft);
             }
 
-            rect = new XRect(smallRectStartCo[0].X, smallRectStartCo[0].Y + Formats.getPixel(1), SMALLNOTERECTWIDTH + SMALLDATERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[0].Y + SMALLRECTHEIGHT / 2));
-            xGps.DrawString($"1. Kursabschnitt: {Periods[0].ToString("dd-MM-yyyy")} - {Periods[1].AddDays(-17).ToString("dd-MM-yyyy")}", regularFont, XBrushes.Black, rect, XStringFormats.TopLeft);
-            smallRectStartCo[0].Y += SMALLRECTHEIGHT / 2 + Formats.getPixel(2);
-            rect = new XRect(smallRectStartCo[0].X, smallRectStartCo[0].Y + Formats.getPixel(1), SMALLNOTERECTWIDTH + SMALLDATERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[0].Y + SMALLRECTHEIGHT / 2));
-            xGps.DrawString($"2. Kursabschnitt: {Periods[1].ToString("dd-MM-yyyy")} - {Periods[2].ToString("dd-MM-yyyy")}", regularFont, XBrushes.Black, rect, XStringFormats.TopLeft);
+            rect = new XRect(smallRectStartCo[0].X, smallRectStartCo[0].Y + Formats.GetPixel(1), SMALLNOTERECTWIDTH + SMALLDATERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[0].Y + SMALLRECTHEIGHT / 2));
+            xGps.DrawString($"1. Kursabschnitt: {periods[0]:dd-MM-yyyy} - {periods[1].AddDays(-17):dd-MM-yyyy}", regularFont, XBrushes.Black, rect, XStringFormats.TopLeft);
+            smallRectStartCo[0].Y += SMALLRECTHEIGHT / 2 + Formats.GetPixel(2);
+            rect = new XRect(smallRectStartCo[0].X, smallRectStartCo[0].Y + Formats.GetPixel(1), SMALLNOTERECTWIDTH + SMALLDATERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[0].Y + SMALLRECTHEIGHT / 2));
+            xGps.DrawString($"2. Kursabschnitt: {periods[1]:dd-MM-yyyy} - {periods[2]:dd-MM-yyyy}", regularFont, XBrushes.Black, rect, XStringFormats.TopLeft);
             #endregion
 
             #region Clean Up
@@ -250,12 +256,12 @@ namespace KursheftTools
                 }
             }
 
-            document.Save($"{StoredPath}\\{title}.pdf");
+            document.Save($"{storedPath}\\{title}.pdf");
             document.Close();
             document.Dispose();
             GC.Collect();
 
-            System.Diagnostics.Debug.WriteLine($"{StoredPath}\\{title}.pdf ist exportiert.");
+            Debug.WriteLine($"{storedPath}\\{title}.pdf ist exportiert.");
             #endregion
             return true;
         }
@@ -312,7 +318,7 @@ namespace KursheftTools
                             if (currentNote != null)
                             {
                                 //If the grade fits to the current course
-                                if (currentLineGrade == this.ClassName || currentLineGrade == this.GetGrade() || currentLineGrade == null)
+                                if (currentLineGrade == this._className || currentLineGrade == this.GetGrade() || currentLineGrade == null)
                                 {
                                     currentDaynotes.AddNote(currentNote);
                                 }
@@ -334,13 +340,13 @@ namespace KursheftTools
 
 
         /// <summary>
-        /// ONLY FOR DEBUG USAGE
+        /// ONLY FOR DEBUG
         /// Print all the daynotes in this CoursePlan object to the console
         /// </summary>
         public void PrintString()
         {
-            Debug.WriteLine($"Course: {this.CourseName}, Class: {this.ClassName}, Teacher: {this.Teacher}");
-            foreach (Daynote daynotes in Lines)
+            Debug.WriteLine($"Course: {this._courseName}, Class: {this._className}, Teacher: {this._teacher}");
+            foreach (Daynote daynotes in _lines)
             {
                 Debug.WriteLine($"{daynotes.GetWeekdayS()}  {daynotes.GetDateS()}: {daynotes.GetNotes()}");
             }

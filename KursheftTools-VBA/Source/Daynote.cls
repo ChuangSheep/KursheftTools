@@ -16,7 +16,7 @@ Option Explicit
 
 Private Day As Date
 
-Private notes() As String
+Private Notes() As String
 
 '------Propertys--------------
 
@@ -28,13 +28,14 @@ End Property
 
 Public Property Get Gnotes() As String()
 
-    Gnotes = notes
+    Gnotes = Notes
 
 End Property
 
 '------Public Functions--------
 
 '''<summary>Pseudo-Class Constructor</summary>
+'''<param name="dt">The date of this daynote object. </param>
 Public Function Initialize(dt As Date)
 
 Day = dt
@@ -46,30 +47,34 @@ End Function
 '''<return>A boolean value represents whether the note is added successfully or not</return>
 Public Function AddNote(note As String) As Boolean
 
-If Not IsDimensioned(notes) Then
-    ReDim notes(0)
-    notes(0) = note
+If Not IsDimensioned(Notes) Then
+    ReDim Notes(0)
+    Notes(0) = note
     AddNote = True
     Exit Function
 End If
 
-ReDim Preserve notes(GetArrayLength(notes))
-notes(GetArrayLength(notes) - 1) = note
+ReDim Preserve Notes(GetArrayLength(Notes))
+Notes(GetArrayLength(Notes) - 1) = note
 AddNote = True
 
 End Function
 
+'''<summary>Get the date of this day. </summary>
+'''<return>Retruen the date of this day as string. </return>
 Public Function GetDate() As String
 
 GetDate = DateGetWeekdayAsString(Day, True) & "  " & format(Day, "dd-MM-yyyy")
 
 End Function
 
+'''<summary>Get the notes on this day as a string</summary>
+'''<return>A string containing all the notes on this day. </return>
 Public Function GetNotes() As String
 
-If IsDimensioned(notes) Then
+If IsDimensioned(Notes) Then
     Dim nt
-    For Each nt In notes
+    For Each nt In Notes
 
         GetNotes = GetNotes & CStr(nt) & "; "
 
@@ -90,9 +95,9 @@ Dim cache As String
 
 cache = DateGetWeekdayAsString(Day, True) & "    " & format(Day, "dd-MM-yyyy") & "    "
 
-If IsDimensioned(notes) Then
+If IsDimensioned(Notes) Then
     Dim nt
-    For Each nt In notes
+    For Each nt In Notes
 
         cache = cache & CStr(nt) & "; "
 

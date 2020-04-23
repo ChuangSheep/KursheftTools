@@ -39,7 +39,7 @@ namespace KursheftTools
 
         //A datatable stores the course plan form the csv file
         //If it was not imported at first, the FormForGeneratingPlans will not be shown
-        private DataTable coursePlan;
+        private DataTable _coursePlan;
 
 
         /// <summary>
@@ -70,8 +70,8 @@ namespace KursheftTools
                 string coursePlanPath = openFileDialog.FileName;
                 //set the names of the columns in the datatable CoursePlan CHANGE IF THE FORMAT IS CHANGED
                 string[] columnNames = new string[9] { "CourseNumber", "Class", "Teacher", "Subject", "Room", "Weekday", "Hour", "U/G", "" };
-                coursePlan = CSVUtils.ImportCSVasDT(coursePlanPath, "Course Plan", false, columnNames);
-                MessageBox.Show("Der Kursplan wurde erfolgreich importiert.", "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                _coursePlan = CSVUtils.ImportCSVasDT(coursePlanPath, "Course Plan", false, columnNames);
+                MessageBox.Show("Der Kursplan wurde importiert.", "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -86,7 +86,7 @@ namespace KursheftTools
             //check if the course plan is imported
             bool allRight = true;
             //If the course plan is not imported
-            if (coursePlan == null)
+            if (_coursePlan == null)
             {
                 allRight = false;
                 MessageBox.Show("Der Kursplan existiert nicht.\r\nImportieren Sie zuerst den Kursplan und versuchen nochmal.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -96,7 +96,7 @@ namespace KursheftTools
             //Test if the note board is not right
             try
             {
-                var datesCell = noteBoard.get_Range("I1", System.Type.Missing).Value2;
+                var datesCell = noteBoard.get_Range("I1", Type.Missing).Value2;
                 datesStrings = datesCell.Split('~');
 
                 //If the length of the datesString does not fit
@@ -125,11 +125,10 @@ namespace KursheftTools
                 
                 foreach (string s in datesStrings)
                 {
-                    var a = Array.IndexOf(datesStrings, s);
                     periods[Array.IndexOf(datesStrings, s)] = DateTime.ParseExact(s, "dd-MM-yyyy", new CultureInfo("de-DE"));
                 }
 
-                FormForGeneratingPlans form = new FormForGeneratingPlans(noteBoard, periods, coursePlan);
+                FormForGeneratingPlans form = new FormForGeneratingPlans(noteBoard, periods, _coursePlan);
 
                 form.ShowDialog();
             }
@@ -149,7 +148,7 @@ namespace KursheftTools
             Globals.ThisAddIn.Application.DisplayAlerts = false;
 
             //Initialize the dialog window for saving pdfs: 
-            SaveFileDialog save = new SaveFileDialog
+            SaveFileDialog saveFileDialog = new SaveFileDialog
             {
                 Filter = "Bemerkungsbogen (*.xlsx)|*.xlsx",
                 DefaultExt = "Bemerkungsbogen.xlsx"
@@ -164,7 +163,7 @@ namespace KursheftTools
             //If can't find, then ask the user to recreate a table or change to the right page
             try
             {
-                var datesCell = sheet.get_Range("I1", System.Type.Missing).Value2;
+                var datesCell = sheet.get_Range("I1", Type.Missing).Value2;
                 string[] datesStrings = datesCell.Split('~');
             }
             catch (FormatException Fe)
@@ -182,19 +181,19 @@ namespace KursheftTools
 
             //Let the user to choose the place to save the pdfs
             //If the user doesn't, then stop
-            if (isRightSheet && save.ShowDialog() == DialogResult.OK)
+            if (isRightSheet && saveFileDialog.ShowDialog() == DialogResult.OK)
             {
-                string savePath = save.FileName;
+                string storePath = saveFileDialog.FileName;
 
                 Globals.ThisAddIn.Application.ScreenUpdating = false;
-                var newWB = Globals.ThisAddIn.Application.Workbooks.Add();
-                sheet.Copy(newWB.Sheets[1]);
-                ((Excel.Worksheet)newWB.Worksheets[2]).Delete();
-                ((Excel.Worksheet)newWB.Worksheets[1]).Name = "Bemerkungsbogen";
+                var newWorkbook = Globals.ThisAddIn.Application.Workbooks.Add();
+                sheet.Copy(newWorkbook.Sheets[1]);
+                ((Excel.Worksheet)newWorkbook.Worksheets[2]).Delete();
+                ((Excel.Worksheet)newWorkbook.Worksheets[1]).Name = "Bemerkungsbogen";
 
                 try
                 {
-                    newWB.SaveAs(savePath);
+                    newWorkbook.SaveAs(storePath);
                 }
                 catch (COMException e)
                 {
@@ -202,7 +201,7 @@ namespace KursheftTools
                     book.Save();
                 }
 
-                newWB.Close();
+                newWorkbook.Close();
             }
 
             Globals.ThisAddIn.Application.ScreenUpdating = true;
@@ -211,16 +210,16 @@ namespace KursheftTools
 
         public void btnImportNoteboard_Click(Office.IRibbonControl ctrl)
         {
-            OpenFileDialog open = new OpenFileDialog
+            OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Filter = "Bemerkungsbogen (*.xlsx)|*.xlsx",
                 RestoreDirectory = true,
                 Multiselect = false
             };
 
-            if (open.ShowDialog() == DialogResult.OK)
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
-                string dataPath = open.FileName;
+                string dataPath = openFileDialog.FileName;
 
                 try
                 {

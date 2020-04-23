@@ -77,7 +77,8 @@ AddLine = True
 
 End Function
 
-'''<summary></summary>
+'''<summary>Get the dates of this course as an array for export. </summary>
+'''<return>Return an array of string containing all the dates on them the course will be held chronologically. </return>
 Public Function GetDatesForExport() As String()
 Dim rtr() As String
 Dim cache
@@ -94,6 +95,8 @@ Next cache
 GetDatesForExport = rtr
 End Function
 
+'''<summary>Get the notes of this course as an array for export. </summary>
+'''<return>Return an array of notes containing all the notes chronologically. The order of this array will be the same as the dates array from "GetDatesForExport()". </return>
 Public Function GetNotesForExport() As String()
 Dim rtr() As String
 Dim cache

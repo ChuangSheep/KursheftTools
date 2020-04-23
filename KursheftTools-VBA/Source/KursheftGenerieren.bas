@@ -4,13 +4,13 @@ Option Explicit
 
 '------Global Variables---------------------------
 '''<summary>The path of the course list</summary>
-Public courseListPath As String
+Public CourseListPath As String
 '''<summary>The path where the pdfs will be stored</summary>
-Public storedPath As String
+Public StoredPath As String
 '''<summary>An array contains the grades for exporting As String</summary>
-Public grades As Variant
+Public Grades As Variant
 '''<summary>The dialog result for "FormForGeneratingCoursebook</summary>
-Public dialogResult As Boolean
+Public DialogResult As Boolean
 '''<summary>The path where the logo is stored
 '''         Leave this string as an empty string ("") to not show the logo
 '''</summary>
@@ -76,9 +76,11 @@ index = 0
 FormForGeneratingCoursebook.Show
 
 'If got the right values from the form
-If dialogResult Then
+If DialogResult Then
     Application.StatusBar = "Export beginnt"
     
+    Application.ScreenUpdating = False
+            
     'Set the name for the csv sheet
     Dim csvSheetName As String
     'Set the name with the current system time
@@ -87,7 +89,7 @@ If dialogResult Then
     
     'Load the course list (.csv) into excel and set the sheet to not visible
     'If success, then
-    If ImportCourseList(courseListPath, csvSheetName) Then
+    If ImportCourseList(CourseListPath, csvSheetName) Then
         
         'Store the imported data sheet as a worksheet object into "courseListS"
         Dim courseListS As Excel.Worksheet
@@ -133,14 +135,13 @@ If dialogResult Then
         Dim exportingSheet As Excel.Worksheet
         Set exportingSheet = PresetExportSheet(datePeriods, LogoPath)
         
-        Application.ScreenUpdating = False
         
         'For loop variables
         Dim i As Long, k As Integer, n As Byte, gradeL As Variant
         
         For i = 2 To rows Step 1
             'Get the course number
-            For Each gradeL In grades
+            For Each gradeL In Grades
                 'If the grade is Q1 or Q2, or the grade between 05-09
                 If gradeL = courseListS.Cells(i, 2) Or gradeL = Left(courseListS.Cells(i, 2), 2) Then
                     If (Not (courseListS.Cells(i, 1) = "" Or courseListS.Cells(i, 2) = "" Or courseListS.Cells(i, 3) = "")) Then
@@ -177,10 +178,10 @@ If dialogResult Then
                             Call currentPlan.Initialize(currentCourseName, currentCourseClass, courseListS.Cells(i, 3))
                 
                             'sort the dts() array
-                            Dim cac
-                            cac = SortDates(dts, Array(isRegular))
-                            sortedDts = cac(0)
-                            isRegular = cac(1)
+                            Dim cacheArr
+                            cacheArr = SortDates(dts, Array(isRegular))
+                            sortedDts = cacheArr(0)
+                            isRegular = cacheArr(1)
                 
                             Dim j As Long
                             Dim lineDate As String
@@ -211,9 +212,9 @@ If dialogResult Then
                                         'if the date are the same
                                         If CDate(sortedDts(k)) = DateValue(lineDate) Then
                                             'Initialize the current daynote
-                                            Dim currentDayNt As Daynote
-                                            Set currentDayNt = New Daynote
-                                            currentDayNt.Initialize (sortedDts(k))
+                                            Dim currentDaynote As Daynote
+                                            Set currentDaynote = New Daynote
+                                            currentDaynote.Initialize (sortedDts(k))
                                         
                                             'Get the notes
                                             For n = 3 To 7 Step 2
@@ -227,13 +228,13 @@ If dialogResult Then
                                                     'If the grade fits to the current course
                                                     If (currentGrade = currentCourseClass) Or (currentGrade = Left(currentCourseClass, 2)) Or (currentGrade = "") Then
                                                         'If the class or grade is the same as the current class, then add the note to the daynote
-                                                        Call currentDayNt.AddNote(currentNote)
+                                                        Call currentDaynote.AddNote(currentNote)
                                                     End If
                                                 End If
                                             Next n
                                 
                                             'Add the plan for this day to the course plan
-                                            Call currentPlan.AddLine(currentDayNt)
+                                            Call currentPlan.AddLine(currentDaynote)
                                         End If
                                     End If
                                 End If
@@ -260,12 +261,12 @@ If dialogResult Then
                     
                             'When the whole noteBoard is processed
                             'Export the plan as pdf
-                            Dim tit As String
-                            tit = currentPlan.GCourseName & "-" & currentPlan.GTeacher & "-" & currentPlan.GClassName & ".pdf"
-                            tit = Replace(tit, "/", ".")
+                            Dim title As String
+                            title = currentPlan.GCourseName & "-" & currentPlan.GTeacher & "-" & currentPlan.GClassName & ".pdf"
+                            title = Replace(title, "/", ".")
                     
                             'If the pdf is not exported successfully, print the debug info
-                            If Not ExportPDF(currentPlan, storedPath & "\" & tit, exportingSheet) Then
+                            If Not ExportPDF(currentPlan, StoredPath & "\" & title, exportingSheet) Then
                                 Debug.Print "The pdf export is not successful"
                                 Debug.Print currentPlan.GCourseName & " " & currentPlan.GClassName & " " & currentPlan.GTeacher
                             Else
@@ -298,7 +299,7 @@ If dialogResult Then
 
     'Show a message box telling the user that the files are exported successfully
     Application.StatusBar = "Export fertig"
-    Call MsgBox(CStr(exportCounter) & " PDF-Datei sind erfolgreich exportiert unter: " & Chr(10) & Chr(13) & storedPath, vbOKOnly, "Erfolg")
+    Call MsgBox(CStr(exportCounter) & " PDF-Datei sind erfolgreich exportiert unter: " & Chr(10) & Chr(13) & StoredPath, vbOKOnly, "Erfolg")
     
     'Delete the query
     ActiveWorkbook.Queries(csvSheetName).Delete
@@ -405,11 +406,11 @@ End With
 End Function
 
 '''<summary>Export the given course plan in the preset form as pdf file storing in the given path</summary>
-'''<param name="PcurrentPlan">The course plan object represents the course that needs to be exported</param>
-'''<param name="Ppath">The path where the pdf data will be stored</param.
-'''<param name="PpresetSheet">The preset sheet generated before</param>
+'''<param name="currentPlan">The course plan object represents the course that needs to be exported</param>
+'''<param name="path">The path where the pdf data will be stored</param.
+'''<param name="presetSheet">The preset sheet generated before</param>
 '''<return>A boolean value represents whether the course is exported successfully or not</return>
-Private Function ExportPDF(PcurrentPlan As CoursePlan, Ppath As String, PpresetSheet As Excel.Worksheet) As Boolean
+Private Function ExportPDF(currentPlan As CoursePlan, path As String, presetSheet As Excel.Worksheet) As Boolean
 
 Dim GREY1
 GREY1 = RGB(245, 245, 245)
@@ -417,12 +418,12 @@ Dim GREY2
 GREY2 = RGB(230, 230, 230)
 
 Dim sheet As Excel.Worksheet
-Set sheet = PpresetSheet
+Set sheet = presetSheet
 
 
 'Set the title
 Dim title As String
-title = PcurrentPlan.GCourseName & "-" & PcurrentPlan.GTeacher & "-" & PcurrentPlan.GClassName
+title = currentPlan.GCourseName & "-" & currentPlan.GTeacher & "-" & currentPlan.GClassName
 title = Replace(title, "/", ".")
 sheet.name = title
 
@@ -450,9 +451,9 @@ End If
 
 'Set the main dates and notes
 Dim CurrentDatesFromPlan
-CurrentDatesFromPlan = PcurrentPlan.GetDatesForExport()
+CurrentDatesFromPlan = currentPlan.GetDatesForExport()
 Dim CurrentNotesFromPlan
-CurrentNotesFromPlan = PcurrentPlan.GetNotesForExport()
+CurrentNotesFromPlan = currentPlan.GetNotesForExport()
 
 'Test if the notes are too much
 If GetArrayLength(CurrentDatesFromPlan) > 89 Then
@@ -501,9 +502,14 @@ If GetArrayLength(CurrentNotesFromPlan) > 53 Then
 End If
 
 'Export the page
-sheet.ExportAsFixedFormat xlTypePDF, Ppath
+sheet.ExportAsFixedFormat xlTypePDF, path
 
 ExportPDF = True
+
+'Clear the note range
+sheet.Range("B3:C55").Clear
+sheet.Range("E3:F38").Clear
+
 
 'If the title cell is merged, unmerge it
 With sheet.Range("C1:D1")
@@ -515,10 +521,10 @@ End With
 End Function
 
 '''<summary>Generate a excel worksheet as the preset for the later export as pdf</summary>
-'''<param name="Pdts">An Array with 3 date object represents the start of the year, of the first period and the end of the year</param>
-'''<param name="PLogoPath" Optional=True>The Path of the logo image, if not given, then the pdf data will not have any logo on the left top edge</param>
+'''<param name="dts">An Array with 3 date object represents the start of the year, of the first period and the end of the year</param>
+'''<param name="LogoPath" Optional=True>The Path of the logo image, if not given, then the pdf data will not have any logo on the left top edge</param>
 '''<return>An excel worksheet object represents the generated preset sheet</return>
-Private Function PresetExportSheet(Pdts, Optional PLogoPath As String = "") As Excel.Worksheet
+Private Function PresetExportSheet(dts, Optional LogoPath As String = "") As Excel.Worksheet
 
 Dim ae
 ae = ChrW(&HE4)
@@ -533,7 +539,7 @@ ss = ChrW(&HDF)
 Application.ScreenUpdating = False
 
 Dim startDt As Date
-startDt = CDate(Pdts(0))
+startDt = CDate(dts(0))
 
 Dim footNote As String
 footNote = "Alle Termine dieser Liste m" & ue & "ssen in der Kursmappe eingetragen sein, auch die unterrichtsfreien Tage. Alle Termine(au" & ss & "er den Ferien) m" & ue & "ssen durch ihre Paraphe best" & ae & "tigt werden. Tragen Sie bitte auch die Fehlstundenzahl sowie die Soll - Ist - Stunden(Kursheft S.5) ein." & _
@@ -574,11 +580,11 @@ sheet.Range("F:F").ColumnWidth = 27.5
 
 'Set the logo picture
 'If the logo path is given
-If Not PLogoPath = "" Then
+If Not LogoPath = "" Then
     With sheet.Range("A1:B1")
         Dim img As Excel.Shape
         Set img = ActiveSheet.Shapes.AddShape(msoShapeRectangle, .Left, .Top, .Width - 10, .Height)
-        img.Fill.UserPicture PLogoPath
+        img.Fill.UserPicture LogoPath
         With img
             .LockAspectRatio = msoTrue
             .Rotation = 0#
@@ -600,9 +606,9 @@ End With
 
 'Set the periods
 sheet.Range("E41").value = "1. Kursabschnitt: "
-sheet.Range("F41").value = format(Pdts(0), "dd.MM.yyyy") & " - " & format(DateAdd("d", -17, Pdts(1)), "dd.MM.yyyy")
+sheet.Range("F41").value = format(dts(0), "dd.MM.yyyy") & " - " & format(DateAdd("d", -17, dts(1)), "dd.MM.yyyy")
 sheet.Range("E42").value = "2. Kursabschnitt: "
-sheet.Range("F42").value = format(Pdts(1), "dd.MM.yyyy") & " - " & format(Pdts(2), "dd.MM.yyyy")
+sheet.Range("F42").value = format(dts(1), "dd.MM.yyyy") & " - " & format(dts(2), "dd.MM.yyyy")
 
 'Set the foot note
 With sheet.Range("E43:F55")

@@ -12,18 +12,18 @@ namespace KursheftTools
 {
     public partial class FormForGeneratingPlans : Form
     {
-        private Excel.Worksheet noteBoard;
+        private readonly Excel.Worksheet _noteBoard;
         //Stores how many Pdfs are exported yet
         //It is a class member mainly because of the progress window
         //Only so can the data transport between threads possible
         public int ExportedPDFs = 0;
         //The information to show on the progress window
-        public string currentInfo;
-        private string PDFStorePath;
-        private string LogoStorePath;
-        private string[] PDFClasses;
-        private DateTime[] Periods;
-        private DataTable coursePlan;
+        public string CurrentInfo;
+        private string _PDFStorePath;
+        private string _logoStorePath;
+        private string[] _PDFClasses;
+        private readonly DateTime[] _periods;
+        private readonly DataTable _coursePlan;
         //Change if there is more grades
         //ex. "10" for the Realschule und Hauptschule
         private static readonly string[] VALIDGRADES = new string[8] { "05", "06", "07", "08", "09", "EF", "Q1", "Q2" };
@@ -38,11 +38,11 @@ namespace KursheftTools
         public FormForGeneratingPlans(Excel.Worksheet sheet, DateTime[] prds, DataTable coursePlan)
         {
             //Initialize the class menbers
-            if (prds.Length == 3) Periods = prds;
+            if (prds.Length == 3) _periods = prds;
             else throw new ArgumentException("The augument \"prds\" does not have 3 items", "prds");
 
-            noteBoard = sheet;
-            this.coursePlan = coursePlan;
+            _noteBoard = sheet;
+            _coursePlan = coursePlan;
             
             InitializeComponent();
         }
@@ -128,8 +128,8 @@ namespace KursheftTools
                 this.Hide();
 
                 //Write the text into the variables
-                PDFStorePath = StoredIn.Text;
-                LogoStorePath = LogoPath.Text;
+                _PDFStorePath = StoredIn.Text;
+                _logoStorePath = LogoPath.Text;
                 //Get all the classes that need to be exported
                 //If the user inputed 05, then the array will contain 05a, 05b, 05c, 05d, 05e
                 //Change the following if there is more or less classes
@@ -156,14 +156,14 @@ namespace KursheftTools
                     }
                 }
 
-                PDFClasses = grds.ToArray();
+                _PDFClasses = grds.ToArray();
 
 
                 //Call the export function
                 //This will process the datatable, start the export and show a progress window
                 ExportPlans();
 
-                MessageBox.Show($"{ExportedPDFs} PDF-Datei wurde erfolgreich exportiert unter\r\n {PDFStorePath}", "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show($"{ExportedPDFs} PDF-Datei wurde erfolgreich exportiert unter\r\n {_PDFStorePath}", "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 DialogResult = DialogResult.Yes;
                 this.Close();
 
@@ -188,16 +188,16 @@ namespace KursheftTools
         {
 
             //Initialize the lists for the loop
-            List<CoursePlan> Plans = new List<CoursePlan>();
-            List<DateTime[]> Dates = new List<DateTime[]>();
-            List<string[]> IsRegular = new List<string[]>();
+            List<CoursePlan> plans = new List<CoursePlan>();
+            List<DateTime[]> dates = new List<DateTime[]>();
+            List<string[]> isRegular = new List<string[]>();
 
-            foreach (string CurrentValidClass in PDFClasses)
+            foreach (string CurrentValidClass in _PDFClasses)
             {
                 //Get the datatable that contains all the information for the current class
                 try
                 {
-                    DataTable currentClassDT = coursePlan.Select($"Class = '{CurrentValidClass}'").CopyToDataTable();
+                    DataTable currentClassDT = _coursePlan.Select($"Class = '{CurrentValidClass}'").CopyToDataTable();
 
                     //Get a List containing all unique subjects
                     var subjectList = currentClassDT.AsEnumerable().Select(s => new
@@ -239,9 +239,9 @@ namespace KursheftTools
                                 if ((string)row.ItemArray[0] == "" || (string)row.ItemArray[1] == "") continue;
                                 //If this is the first line or the dates are not the same
                                 if (indexOfRow == 0 ||
-                                    DateTime.Compare(DateTimeCalcUtils.GetNearestWeekdayS(Periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString()))), currentDT.Last()) != 0)
+                                    DateTime.Compare(DateTimeCalcUtils.GetNearestWeekdayS(_periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString()))), currentDT.Last()) != 0)
                                 {
-                                    currentDT.Add(DateTimeCalcUtils.GetNearestWeekdayS(Periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString()))));
+                                    currentDT.Add(DateTimeCalcUtils.GetNearestWeekdayS(_periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString()))));
                                     currentIsRegular.Add(currentCourse[indexOfRow].ItemArray[7].ToString());
                                 }
                                 //If the isRegular value, however, are not the same, then if there's a course on this day on every week, set isRegular to regular("")
@@ -250,9 +250,9 @@ namespace KursheftTools
                             }
 
                             //Add them to the list
-                            Plans.Add(currentPlan);
-                            Dates.Add(currentDT.ToArray());
-                            IsRegular.Add(currentIsRegular.ToArray());
+                            plans.Add(currentPlan);
+                            dates.Add(currentDT.ToArray());
+                            isRegular.Add(currentIsRegular.ToArray());
                         }
                     }
                 }
@@ -265,24 +265,24 @@ namespace KursheftTools
             }
 
             //Start a new thread showing the progress
-            Thread progressT = new Thread(delegate ()
+            Thread progressWindowThread = new Thread(delegate ()
             {
-                FormProgress formProgress = new FormProgress(this, Plans.Count);
+                FormProgress formProgress = new FormProgress(this, plans.Count);
                 formProgress.ShowDialog();
             });
-           progressT.Start();
+           progressWindowThread.Start();
 
             //Export them
-            if (Plans.Count == Dates.Count && Dates.Count == IsRegular.Count && IsRegular.Count != 0)
+            if (plans.Count == dates.Count && dates.Count == isRegular.Count && isRegular.Count != 0)
             {
-                for (int i = 0; i < Plans.Count; i++)
+                for (int i = 0; i < plans.Count; i++)
                 {
-                    CoursePlan currentCoursePlan = Plans[i];
-                    currentCoursePlan.ReadNoteBoard(noteBoard, Dates[i], IsRegular[i]);
+                    CoursePlan currentCoursePlan = plans[i];
+                    currentCoursePlan.ReadNoteBoard(_noteBoard, dates[i], isRegular[i]);
                     //After all the note board processed
                     //Export the current course plan
-                    currentCoursePlan.ExportAsPDF(Periods, PDFStorePath, LogoStorePath != "" ? LogoStorePath : "default");
-                    currentInfo = $"{currentCoursePlan.GetTitle()} wurde exportiert unter: {PDFStorePath}";
+                    currentCoursePlan.ExportAsPDF(_periods, _PDFStorePath, _logoStorePath != "" ? _logoStorePath : "default");
+                    CurrentInfo = $"{currentCoursePlan.GetTitle()} wurde exportiert. ";
                     ExportedPDFs++;
                 }
 
@@ -294,8 +294,8 @@ namespace KursheftTools
             }
 
             //Close the progress window
-            progressT.Abort();
-            System.Diagnostics.Debug.WriteLine($"{ExportedPDFs} wurde exportiert unter: {PDFStorePath}");
+            progressWindowThread.Abort();
+            System.Diagnostics.Debug.WriteLine($"{ExportedPDFs} wurde exportiert unter: {_PDFStorePath}");
         }
     }
 }

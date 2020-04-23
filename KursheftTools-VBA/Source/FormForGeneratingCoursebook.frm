@@ -90,18 +90,18 @@ Next s
 'If all the data are correct, then store the data to the global variables and close the form
 If allRight Then
 
-    KursheftGenerieren.courseListPath = courseListFrom.text
-    KursheftGenerieren.storedPath = storedIn.text
-    KursheftGenerieren.grades = gradesArr
+    KursheftGenerieren.CourseListPath = courseListFrom.text
+    KursheftGenerieren.StoredPath = storedIn.text
+    KursheftGenerieren.Grades = gradesArr
 
     'Set the dialog result to true
-    KursheftGenerieren.dialogResult = True
+    KursheftGenerieren.DialogResult = True
     Unload FormForGeneratingCoursebook
 
 'If there is someting wrong, then
 Else
     'Set the dialog result to false
-    KursheftGenerieren.dialogResult = False
+    KursheftGenerieren.DialogResult = False
 
     'Find the wrong path and mark it red
     If Not pathExists(courseListFrom.text) Then
@@ -117,7 +117,7 @@ End Sub
 'When the button "Aufheben" is clicked
 Private Sub BtnCancel_Click()
 
-KursheftGenerieren.dialogResult = False
+KursheftGenerieren.DialogResult = False
 Unload FormForGeneratingCoursebook
 
 End Sub
@@ -208,37 +208,37 @@ Function itemExistsInArr(astrItems(), _
                           strSearch As String) As Boolean
                   
 
-    Dim astrFilter()   As String
-    Dim astrTemp()       As String
-    Dim lngUpper         As Long
-    Dim lngLower         As Long
-    Dim lngIndex         As Long
+Dim astrFilter() As String
+Dim astrTemp() As String
+Dim lngUpper As Long
+Dim lngLower As Long
+Dim lngIndex As Long
    
-    ' Filter array for search string.
-    astrFilter = Filter(astrItems, strSearch)
+' Filter array for search string.
+astrFilter = Filter(astrItems, strSearch)
    
-    ' Store upper and lower bounds of resulting array.
-    lngUpper = UBound(astrFilter)
-    lngLower = LBound(astrFilter)
+' Store upper and lower bounds of resulting array.
+lngUpper = UBound(astrFilter)
+lngLower = LBound(astrFilter)
    
-    'If nothing fit to the originary filter
-    If lngUpper < lngLower Then
-        itemExistsInArr = False
+'If nothing fit to the originary filter
+If lngUpper < lngLower Then
+    itemExistsInArr = False
+    Exit Function
+End If
+   
+' Resize temporary array to be same size.
+ReDim astrTemp(lngLower To lngUpper)
+   
+' Loop through each element in filtered array.
+For lngIndex = lngLower To lngUpper
+    ' Check that element matches search string exactly.
+    If astrFilter(lngIndex) = strSearch Then
+        ' Store elements that match exactly in another array.
+        itemExistsInArr = True
         Exit Function
     End If
-   
-    ' Resize temporary array to be same size.
-    ReDim astrTemp(lngLower To lngUpper)
-   
-    ' Loop through each element in filtered array.
-    For lngIndex = lngLower To lngUpper
-        ' Check that element matches search string exactly.
-        If astrFilter(lngIndex) = strSearch Then
-            ' Store elements that match exactly in another array.
-            itemExistsInArr = True
-            Exit Function
-        End If
-    Next lngIndex
+Next lngIndex
 
 itemExistsInArr = False
 

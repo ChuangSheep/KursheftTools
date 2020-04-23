@@ -80,13 +80,13 @@ End If
 
 If Not exiting Then
     'pass the parameter to the main sub
-    dates = Array(convertStringToDate(datesFromTB(0)), convertStringToDate(datesFromTB(1)), convertStringToDate(datesFromTB(2)))
+    Dates = Array(convertStringToDate(datesFromTB(0)), convertStringToDate(datesFromTB(1)), convertStringToDate(datesFromTB(2)))
 
     'close the Form
     Unload FormForCreatingBoard
 
     'Change the dialogResult1 to true since the dateS is written correctly
-    dialogResult1 = True
+    DialogResult1 = True
 
 End If
 

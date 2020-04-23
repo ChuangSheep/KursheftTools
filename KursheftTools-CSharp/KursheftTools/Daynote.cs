@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace KursheftTools
 {
     class Daynote
     {
-        private DateTime Date { get; }
-        private List<string> Notes { get; }
+        private readonly DateTime _date;
+        private readonly List<string> _notes;
 
         /// <summary>
         /// Class constructor
@@ -17,8 +14,8 @@ namespace KursheftTools
         /// <param name="dt">A DateTime object represents the date</param>
         public Daynote(DateTime dt)
         {
-            Date = dt;
-            Notes = new List<string>();
+            _date = dt;
+            _notes = new List<string>();
         }
 
         /// <summary>
@@ -27,7 +24,7 @@ namespace KursheftTools
         /// <param name="note">A string represents the note that needs to be added</param>
         public void AddNote(string note)
         {
-            if (note != "") Notes.Add(note);
+            if (note != "") _notes.Add(note);
         }
 
         /// <summary>
@@ -36,7 +33,7 @@ namespace KursheftTools
         /// <returns>A string represents on which weekday this Daynote object is</returns>
         public string GetWeekdayS()
         {
-            return DateTimeCalcUtils.GetWeekday(Date);
+            return DateTimeCalcUtils.GetWeekday(_date);
         }
 
         /// <summary>
@@ -45,7 +42,7 @@ namespace KursheftTools
         /// <returns>A string in "dd-MM-yyyy" format</returns>
         public string GetDateS()
         {
-            return Date.ToString("dd-MM-yyyy");
+            return _date.ToString("dd-MM-yyyy");
         }
 
         /// <summary>
@@ -54,7 +51,7 @@ namespace KursheftTools
         /// <returns>A DateTime object</returns>
         public DateTime GetDate()
         {
-            return this.Date;
+            return this._date;
         }
 
         /// <summary>
@@ -64,7 +61,7 @@ namespace KursheftTools
         public string GetNotes()
         {
             string cache = "";
-            foreach (string s in Notes)
+            foreach (string s in _notes)
             {
                 cache += s + "; ";
             }

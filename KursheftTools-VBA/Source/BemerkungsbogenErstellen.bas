@@ -4,11 +4,11 @@ Option Explicit
 '------Global Variables-------------------
 
 '''<summary>Stores the start date, the start of the second period and the end of the year </summary>
-Public dates()
+Public Dates()
 '''<summary>Stores the result of the FormForInputDates
 '''True represents that the form is closed with correct data
 '''False represent that the form is closed without writing the correct data </summary>
-Public dialogResult1 As Boolean
+Public DialogResult1 As Boolean
 
 '------Main Function----------------------
 
@@ -17,20 +17,20 @@ Public dialogResult1 As Boolean
 Public Sub BemerkungsbogenErstellen()
 
 'Set the dialog result for the FormForInputDates
-dialogResult = False
+DialogResult = False
 
 'Show the window that allows the user to input the dates
 FormForCreatingBoard.Show
 
 'If the right dates are stored
-If dialogResult1 Then
+If DialogResult1 Then
 
     Dim sheet As Excel.Worksheet
     Set sheet = CreateNewSheet("")
     
     If Not (sheet Is Nothing) Then
         'Create the real board
-        CreateBoard sheet, dates
+        CreateBoard sheet, Dates
 
         Call MsgBox("Die Bemerkungsbogen wurde erfolgreich generiert", vbOKOnly, "Erfolg")
     Else
@@ -101,9 +101,9 @@ End Function
 
 '''<summary>Create a note board on the given sheet based on the given dates</summary>
 '''<param name="sheet">A Excel sheet object indicating the board sheet</param>
-'''<param name="Pdates">An array containing 3 dates' object which represent the start of the
+'''<param name="dates">An array containing 3 dates' object which represent the start of the
 ''' first period, the start of the second period and the end of the year</param>
-Private Sub CreateBoard(sheet As Object, Pdates())
+Private Sub CreateBoard(sheet As Object, Dates())
 
 Const STARTT1 As String = "Anfang d. 1. Abschnitts"
 Const STARTT2 As String = "Anfang d. 2. Abschnitts"
@@ -116,8 +116,8 @@ titlesStart(2) = ENDT
 'Get the days between the dates
 Dim dateIntervals(2) As Integer
 dateIntervals(0) = 0
-dateIntervals(1) = BusinessDaysUntil(CDate(Pdates(0)), DateAdd("d", -17, CDate(Pdates(1))))
-dateIntervals(2) = BusinessDaysUntil(CDate(Pdates(0)), DateAdd("d", -17, CDate(Pdates(1)))) + BusinessDaysUntil(CDate(Pdates(1)), CDate(Pdates(2))) - 1
+dateIntervals(1) = BusinessDaysUntil(CDate(Dates(0)), DateAdd("d", -17, CDate(Dates(1))))
+dateIntervals(2) = BusinessDaysUntil(CDate(Dates(0)), DateAdd("d", -17, CDate(Dates(1)))) + BusinessDaysUntil(CDate(Dates(1)), CDate(Dates(2))) - 1
 
 
 'Set the format of the whole worksheet
@@ -128,7 +128,7 @@ sheet.Range("A:A").EntireColumn.EntireRow.RowHeight = 30
 'Set the titles row its format
 sheet.Range("A1").value = "Wochentage"
 sheet.Range("B1").value = "Datum"
-sheet.Range("I1").value = getDateS(Pdates(0)) & "~" & getDateS(Pdates(1)) & "~" & getDateS(Pdates(2))
+sheet.Range("I1").value = getDateS(Dates(0)) & "~" & getDateS(Dates(1)) & "~" & getDateS(Dates(2))
 
 Dim i As Integer
 
@@ -153,8 +153,8 @@ sheet.Range("B:B").NumberFormat = "dd-MM-yyyy"
 
 For i = 0 To 2 Step 1
     'Set the first three date and weekday
-    sheet.Cells(dateIntervals(i) + 3 + i, 1).value = DecimalGetWeekdayAsString(weekday(Pdates(i), vbMonday))
-    sheet.Cells(dateIntervals(i) + 3 + i, 2).value = Pdates(i)
+    sheet.Cells(dateIntervals(i) + 3 + i, 1).value = DecimalGetWeekdayAsString(weekday(Dates(i), vbMonday))
+    sheet.Cells(dateIntervals(i) + 3 + i, 2).value = Dates(i)
     
     If i < 2 Then
         'Set the title lines and its Format (Anfang d. Abschnitts etc. )
@@ -171,8 +171,8 @@ For i = 0 To 2 Step 1
 Next i
 
 'Set the last two lines
-sheet.Cells(dateIntervals(2) + 3 + 1, 1).value = DecimalGetWeekdayAsString(weekday(Pdates(2), vbMonday))
-sheet.Cells(dateIntervals(2) + 3 + 1, 2).value = Pdates(2)
+sheet.Cells(dateIntervals(2) + 3 + 1, 1).value = DecimalGetWeekdayAsString(weekday(Dates(2), vbMonday))
+sheet.Cells(dateIntervals(2) + 3 + 1, 2).value = Dates(2)
 
 sheet.Cells(dateIntervals(2) + 3 + 2, 1).value = ""
 sheet.Cells(dateIntervals(2) + 3 + 2, 2).value = titlesStart(2)
@@ -190,10 +190,10 @@ End Sub
 
 
 '''<summary>Test if a sheet in the current workbook exist</summary>
-'''<param name="sName">A string represents the name of the worksheet
+'''<param name="sheetName">A string represents the name of the worksheet
 '''             If it is an empty string, then always return false</param>
 '''<return>A boolean value represents whether that sheet exists</return>
-Private Function SheetExists(sName As String) As Boolean
+Private Function SheetExists(sheetName As String) As Boolean
 
 Dim x As Object
 
@@ -206,13 +206,13 @@ If (Workbooks.Count = 0) Then
 End If
 
 'If the given name is a empty string, we return always false
-If sName = "" Then
+If sheetName = "" Then
 
 SheetExists = False
 
 End If
 'Try to set x to the worksheet with the given name
-Set x = ActiveWorkbook.Sheets(sName)
+Set x = ActiveWorkbook.Sheets(sheetName)
 
 'If no error occured, then it exists
 If Err = 0 Then

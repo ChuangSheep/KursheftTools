@@ -82,7 +82,6 @@
             this.Text = "Progress";
             this.TopMost = true;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.FormProgress_FormClosing);
-            this.Load += new System.EventHandler(this.FormProgress_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

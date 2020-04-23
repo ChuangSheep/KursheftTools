@@ -68,9 +68,9 @@ End Function
 '''<param name="isShortForm" optional=True>A boolean Value represents whether the return is in short form or full form</param>
 '''<return>A string represents the weekday in short form or in long form in German. ex. Mo, Di/ Montag, Dienstag </return>
 '''<exception cref="vbObjectError + 3001">ArgumentException: The given "Pweekday" is not valid</exception>
-Public Function DecimalGetWeekdayAsString(Pweekday As Integer, Optional isShortForm As Boolean = False) As String
+Public Function DecimalGetWeekdayAsString(weekday As Integer, Optional isShortForm As Boolean = False) As String
 
-Select Case Pweekday
+Select Case weekday
     Case 1
         DecimalGetWeekdayAsString = IIf(isShortForm, "Mo", "Montag")
         Exit Function
@@ -181,7 +181,7 @@ End Function
 '''We assume the valid string would be:
 '''dd-MM-yyyy</param>
 '''<return>a boolean value represents whether the given string is valid or not</return>
-Public Function dateIsValid(ByVal dates As String) As Boolean
+Public Function dateIsValid(ByVal Dates As String) As Boolean
 
 dateIsValid = True
 'Change this constant if the seperator is changed
@@ -194,12 +194,12 @@ Dim SHORTMONTH As Variant
 SHORTMONTH = Array(4, 6, 9, 11)
 
 'If the String is not long enouth, then not valid
-If Not (Len(dates) = 10) Then
+If Not (Len(Dates) = 10) Then
 dateIsValid = False
 End If
 
 'If the string is not right(have less or more than 2 "-"
-If Not (GetArrayLength(Split(dates, SEPERATOR)) = 3) Then
+If Not (GetArrayLength(Split(Dates, SEPERATOR)) = 3) Then
 dateIsValid = False
 Exit Function
 End If
@@ -207,13 +207,13 @@ End If
 
 'spilt the string
 Dim spiltedStringDate
-spiltedStringDate = Split(dates, SEPERATOR)
+spiltedStringDate = Split(Dates, SEPERATOR)
 
 
 'If the Year is valid
-Dim Year As Integer
-Year = CInt(spiltedStringDate(2))
-If Year < 1 Or Year > 2100 Then
+Dim year As Integer
+year = CInt(spiltedStringDate(2))
+If year < 1 Or year > 2100 Then
 dateIsValid = False
 Exit Function
 End If
@@ -253,7 +253,7 @@ Next Month2
 'For February
 'If it is leap year
 If CInt(spiltedStringDate(1)) = 2 Then
-    If IsLeapYear(Year) Then
+    If IsLeapYear(year) Then
         If CInt(spiltedStringDate(0)) > 29 Or CInt(spiltedStringDate(0)) < 1 Then
         dateIsValid = False
         Exit Function
@@ -274,16 +274,16 @@ End Function
 '''<summary>Check the given year, if it's leap year, return True, else return False</summary>
 '''<param name="year">The year to be checked</param>
 '''<return>A boolean value that represents whether that year is leap year or not</return>
-Public Function IsLeapYear(Year As Integer) As Boolean
+Public Function IsLeapYear(year As Integer) As Boolean
 
-If Year Mod 100 = 0 Then
-    If Year Mod 400 = 0 Then
+If year Mod 100 = 0 Then
+    If year Mod 400 = 0 Then
         IsLeapYear = True
     Else
         IsLeapYear = False
     End If
 Else
-    If Year Mod 4 = 0 Then
+    If year Mod 4 = 0 Then
         IsLeapYear = True
     End If
 End If
@@ -298,14 +298,14 @@ End Function
 '''We assume the valid string would be:
 '''dd-MM-yyyy </param>
 '''<return>A Date object represents the date of the given string</return>
-Public Function convertStringToDate(DateStr As String) As Date
+Public Function convertStringToDate(dateStr As String) As Date
 
 'Change this constant if the seperator is changed
 Const SEPERATOR As String = "-"
 
 'spilt the string
 Dim spiltedSDate As Variant
-spiltedSDate = Split(DateStr, SEPERATOR)
+spiltedSDate = Split(dateStr, SEPERATOR)
 
 'convert the date from string to date object
 convertStringToDate = DateSerial(spiltedSDate(2), spiltedSDate(1), spiltedSDate(0))

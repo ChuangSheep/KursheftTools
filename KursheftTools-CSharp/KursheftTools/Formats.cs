@@ -8,11 +8,11 @@ namespace KursheftTools
         ///</summary>
         ///<param name="mmLength">the length in mm</param>
         ///<returns>the pixel number of the given length</returns>
-        public static double getPixel(int mmLength)
+        public static double GetPixel(int mmLength)
         {
             return (mmLength * 2.834646);
         }
-        public static double getPixel(double mmLength)
+        public static double GetPixel(double mmLength)
         {
             return (mmLength * 2.834646);
         }
