@@ -1,4 +1,13 @@
 Attribute VB_Name = "KursheftGenerieren"
+'
+' Author: Chuyang W. (https://github.com/ChuangSheep/KursheftTools)
+' License: Apache 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+' Document: https://github.com/ChuangSheep/KursheftTools/blob/master/README.md
+' Copyright 2020 (c)
+'
+' ----------------------------------------
+
+
 Option Explicit
 
 

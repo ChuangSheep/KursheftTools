@@ -56,7 +56,7 @@
             this.VersionL.Name = "VersionL";
             this.VersionL.Size = new System.Drawing.Size(143, 17);
             this.VersionL.TabIndex = 1;
-            this.VersionL.Text = "Version 1.0.0.1";
+            this.VersionL.Text = "Version 1.0.1.0";
             // 
             // LicenseRTB
             // 

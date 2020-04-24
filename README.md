@@ -11,9 +11,9 @@ Avaliable as VBA Addin and also as VSTO Addin(c#).
 	* [For c#](#StartCS) 
 	* [For VBA](#StartVBA) 
 	
-* [Technologies](Technologies)
+* [Technologies](#Technologies)
 
-* [Examples of use](#Examples) 
+* [Examples of use](#ExamplesOfUse) 
 	* [How to create a new note board](#CreateNewNoteboard)
 	* [How to import the course list (Only for c# version)](#ImportCourseList)
 	* [How to export the course plans](#ExportCoursePlan)
@@ -104,7 +104,7 @@ For VBA Addin:
 * Visual Basic for Application 7.1
 
 
-<a name="Examples"></a>
+<a name="ExamplesOfUse"></a>
 ## Examples of use
 
 Depending on what you have chosen, there could be some small differences in the user interface between the versions as also the way how to run the Addin. <br>
