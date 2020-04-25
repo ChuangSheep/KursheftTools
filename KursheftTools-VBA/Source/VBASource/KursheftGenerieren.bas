@@ -6,7 +6,7 @@ Attribute VB_Name = "KursheftGenerieren"
 ' Copyright 2020 (c)
 '
 ' ----------------------------------------
-
+'Version 1.0.1.0
 
 Option Explicit
 
@@ -27,8 +27,7 @@ Public Const LogoPath As String = ""
 
 
 
-
-'------Main Function------------------------------
+'------Main Sub------------------------------
 
 Public Sub KursheftGenerieren()
 
@@ -87,8 +86,6 @@ FormForGeneratingCoursebook.Show
 'If got the right values from the form
 If DialogResult Then
     Application.StatusBar = "Export beginnt"
-    
-    Application.ScreenUpdating = False
             
     'Set the name for the csv sheet
     Dim csvSheetName As String
@@ -100,6 +97,8 @@ If DialogResult Then
     'If success, then
     If ImportCourseList(CourseListPath, csvSheetName) Then
         
+        Application.ScreenUpdating = False
+            
         'Store the imported data sheet as a worksheet object into "courseListS"
         Dim courseListS As Excel.Worksheet
         Set courseListS = Worksheets(csvSheetName)
@@ -421,6 +420,8 @@ End Function
 '''<return>A boolean value represents whether the course is exported successfully or not</return>
 Private Function ExportPDF(currentPlan As CoursePlan, path As String, presetSheet As Excel.Worksheet) As Boolean
 
+Application.ScreenUpdating = False
+    
 Dim GREY1
 GREY1 = RGB(245, 245, 245)
 Dim GREY2
@@ -526,6 +527,8 @@ With sheet.Range("C1:D1")
         .UnMerge
     End If
 End With
+
+Application.ScreenUpdating = True
 
 End Function
 

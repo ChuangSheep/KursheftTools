@@ -1,4 +1,13 @@
 Attribute VB_Name = "DateTimeClacUtils"
+'
+' Author: Chuyang W. (https://github.com/ChuangSheep/KursheftTools)
+' License: Apache 2.0 (http://www.apache.org/licenses/LICENSE-2.0)
+' Document: https://github.com/ChuangSheep/KursheftTools/blob/master/README.md
+' Copyright 2020 (c)
+'
+' ----------------------------------------
+
+
 Option Explicit
 Option Private Module
 
@@ -61,7 +70,7 @@ BusinessDaysUntil = businessDaysBetween
 End Function
 
 'I would let the following two functions overload
-'However, VBA does not support overload
+'However, VBA does not support that
 
 '''<summary>Get the weekday in long or short form of a given integer representing a weekday</summary>
 '''<param name="weekday">An Integer value represents the weekday. Monday is seen as 1</param>

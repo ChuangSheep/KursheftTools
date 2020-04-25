@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">  
+  <ribbon startFromScratch="false"> 
+    <tabs>
+      <tab id="KHTool" label="Kursheft Tools"> 
+        <group id="NewStartGrp" label="Neu Anfangen">
+          <button id="CreateNoteboard" label="Neue Bemerkungsbogen erstellen" imageMso="NewNote" size="large" onAction="RibbonUI.CreateNoteBoard_Click"/> 
+          <button id="CreateCoursePlan" label="Kurshefte Generieren" imageMso="PublishToPdfOrEdoc" size="large" onAction="RibbonUI.CreateCoursePlan_Click"/>  
+		</group>  
+		<group id="Manage" label="Verwalten">
+		  <button id="UninstallAddin" label="Dieses Addin Deinstallieren" imageMso="FrameDelete" size="normal" onAction="RibbonUI.HideAddin_Click"/>  
+		</group>
+      </tab> 
+    </tabs> 
+  </ribbon> 
+</customUI>

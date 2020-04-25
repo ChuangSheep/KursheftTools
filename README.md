@@ -82,7 +82,7 @@ We also recommend you to set the **macro security level** to allow the downloade
 
 #### Installing
 
-At first, you have to download either the KursheftTools.xlam in the folder `KursheftTools/KursheftTools-VBA` or download the whole folder called Source at `KursheftTools/KursheftTools-VBA`. <br>
+At first, you have to download either the KursheftTools.xlam in the folder `KursheftTools/KursheftTools-VBA` or download the whole folder called `VBASource` at `KursheftTools/KursheftTools-VBA`. <br>
 
 Then **open Excel**, go to the tab called **Developer**. Then click the button called **Visual Basic**. If you don't see this tab, [have a look of this office support page explaining how to show it](https://support.office.com/en-us/article/show-the-developer-tab-e1192344-5e56-4d45-931b-e5fd9bea2d45). <br>
 
@@ -110,15 +110,14 @@ For VBA Addin:
 Depending on what you have chosen, there could be some small differences in the user interface between the versions as also the way how to run the Addin. <br>
 
 For the C# version, after installing, this Addin will be available every time you open Excel. <br>
-For the VBA version, you may have to import the program files every time you use this Addin. 
+For the VBA version, if you have used the `.xlam` file, the addin will show up every time you open Excel unless you uninstalled it. <br>
+After uninstalled the VBA Addin by **itself**, you may have to re-enable it manually from *Developer* -> *Excel-Addin*. 
 
 
 <a name="CreateNewNoteboard"></a>
 ### Create a new note board
 
-To test how this Addin creates a new note board, click the button called **Neue Bemerkungsbogen erstellen** at tab **Kursheft Tools**(*C#*). <br>
-
-Or, for *VBA*, run the macro called **BemerkungsbogenErstellen**. <br>
+To test how this Addin creates a new note board, click the button called **Neue Bemerkungsbogen erstellen** at tab **Kursheft Tools**. <br>
 
 After that, a dialog window will open and asks you to input the periods, which are supposed to be the start of the year, the start of the second period, and the end of the half-year. <br>
 
@@ -149,11 +148,10 @@ ___
 
 Before exporting the course plans, please go to the note board worksheet which you want to use for the export. <br>
 
-To export the course plans as pdf, click the button called **Kurshefte generieren**. <br>
-
-Or, for *VBA*, run the macro called **KursheftGenerieren**. <br>
+To export the course plans as pdf, click the button called **Kurshefte generieren** at tab **Kursheft Tools**. <br>
 
 A dialog window will show up. If you are using the C# VSTO Addin, you will be asked to input the path to store the exported course plans, the grades need to be exported and the path of the logo file (*optional*). <br>
+
 **For C#, you have to import a course list at first.** <br>
 
 For VBA version, you will be extra asked for the path of the course list. However, the field for the path of the logo file does not exist here. <br>
@@ -511,12 +509,14 @@ You can find the install files at [**"Release"**](https://github.com/ChuangSheep
 
 It is **highly recommend to use the VSTO version** if possible since it is **much quicker, safer and more user-friendly**. <br>
 
+
+
 <a name="DeploymentCSharp"></a>
 ### For C#
 
 For the VSTO Addin written with C#, you need the *administrator privilege* of the system to allow you to install the Addin for Excel. <br>
 
-We recommend you to use the EXE installer, which has already bundles all of the dependencies. Therefore, you will not have to install them manually. Double click the Exe file, read and agree with the agreement, and you are done!<br>
+**We recommend you to use the EXE installer**, which has ***already bundles all of the dependencies (Internet connection required).*** Therefore, you will not have to install them manually. Double click the Exe file, read and agree with the agreement, and you are done!<br>
 
 If you choose to use the `.vsto` or the `.msi` installer, you have to install the *Visual Studio Tools for Office runtime redistributable* manually. Also, .Net 4.5 or newer version is required. These should be installed at first before you install the VSTO Addin. <br>
 Here is [a Microsoft documentation explaining how to install these runtime libraries on your computer](https://docs.microsoft.com/en-us/visualstudio/vsto/how-to-install-the-visual-studio-tools-for-office-runtime-redistributable). <br>
@@ -530,8 +530,10 @@ ___
 
 For the VBA Addin written with Visual Basic for Application, you only need the permission for running macros in your excel. This is useful if you are in a **restricted environment**. <br>
 
-Double click the downloaded `KursheftTools.xlam`, and the macro will be loaded. You can run the method you want to use. <br>
+Double click the downloaded `KursheftTools.xlam`, and the Addin will be loaded into your system. <br>
+
 Or, if you have downloaded the source code, import them to your Visual Basic editor and run the method you want.  <br>
+*If you are using the source code, the method* `ribbonUI` *will not be used since it is for the user interface*. <br>
 
 You can find [a detailed instruction by Microsoft of how to run a macro](https://support.office.com/en-us/article/run-a-macro-5e855fd2-02d1-45f5-90a3-50e645fe3155) here. <br>
 

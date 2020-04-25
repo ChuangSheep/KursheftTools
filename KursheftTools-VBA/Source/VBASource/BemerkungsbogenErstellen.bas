@@ -6,9 +6,11 @@ Attribute VB_Name = "BemerkungsbogenErstellen"
 ' Copyright 2020 (c)
 '
 ' ----------------------------------------
+'Version 1.0.1.0
 
 
 Option Explicit
+
 
 '------Global Variables-------------------
 
@@ -22,7 +24,7 @@ Public DialogResult1 As Boolean
 '------Main Function----------------------
 
 
-'''<summary>The main function that creates a note board based on the user inputed dates</summary>
+'''<summary>The main sub that creates a note board based on the user inputed dates</summary>
 Public Sub BemerkungsbogenErstellen()
 
 'Set the dialog result for the FormForInputDates
