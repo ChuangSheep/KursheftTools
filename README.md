@@ -96,7 +96,7 @@ Then **open Excel**, go to the tab called **Developer**. Then click the button c
 For C# VSTO Addin: 
 
 * C# 5.0
-* .Net 4.5
+* .Net Framework 4.5
 * VSTO Runtime library
 
 For VBA Addin: 
@@ -250,13 +250,16 @@ ca. 8-12% CPU usage (of all processors)
 <a name="Format"></a>
 ## Format of files
 
+To get the example files, go to the folder called [*ExampleDataForTest*](ExampleDataForTest). <br>
+*Note that these example data are made up and do not contain any personal information.* <br>
+
 <a name="FormatCourseList"></a>
 ### Format of the course list 
 
 The `.csv` file as course list should have the following format: <br>
 
 ```
-[Course Number] | [Class] | [Teacher] | [Subject] | [Room] | [Weekday] | [Hour] | [Odd/Even week] | [Unused]
+[Course Number] | [Class] | [Teacher] | [Subject] | [Room] | [Weekday] | [Hour] | [Unused] | [Unused]
 ```
 
 **Please note that the csv file itself does NOT contain any title line.** <br>
@@ -293,37 +296,25 @@ The weekday as a number on that this course will be held. <br>
 #### Hour
 
 The hour which this course will be held. This value should be 1 to 9. <br>
-*This property will NOT be used for this project currently.* <br>
 
-#### Odd/Even week
+If this property is between `1` to `7`, then this course will be held **every week**. <br>
 
-A string shows whether this course will be held every week, or only on odd or even weeks. <br>
+Otherwise, if this shows `8`, then this course will only be held on **even weeks**. <br>
+If this shows `9`, then this course will only be held on **odd weeks**. <br> 
 
-There are three possibilities for this property: <br>
-
-```C#
-[]
-[g]
-[u]
-
-//Please do NOT write the brackets into the course list
-```
-
-An empty string means this course will be held every week. <br>
-`g` means this course will be held every even week. <br>
-`u` means this course will be held every odd week. <br>
+**If 8 or 9 shows up together, then this course will be held every week.** <br>
 
 
-This property could be different in a course for different weekdays. For example: <br>
+For example: <br>
 
 ```CSV
-1002;"06b";"Dvd";"ChB";"10.07";3;3;g;
-1002;"06b";"Dvd";"ChB";"10.07";3;4;g;
+1002;"06b";"Dvd";"ChB";"10.07";3;8;;
 7020;"06b";"Dvd";"ChB";"10.07";5;5;;
 ```
 
-This example shows, the course named `ChB` for class `06b` will be held **every even week** on the third and fourth hour of **Wednesday**. <br>
+This example shows, the course named `ChB` for class `06b` will be held **every even week** on the *eighth and ninth hour* of **Wednesday**. <br>
 However, this course will also be held **every week** on the fifth hour of **Friday**. <br>
+
 
 #### Unused
 
@@ -345,16 +336,15 @@ ___
 `Eng` : The subject of this course (in the short form). <br>
 `7.06` : The room where this course will be held. <br>
 `1` : This course will be held on Monday. <br>
-`6` : This course will be held in the sixth hour of the day. <br>
-` ` : This course will be held on every week. <br>
+`6` : This course will be held in the sixth hour of the day in every week since it is not `8` or `9`. <br>
 
 
 *And multiple lines of such record shows how the course looks like:* <br>
 
 ```csv
 46;"05c";"Frk";"Eng";"7.06";1;6;;
-46;"05c";"Frk";"Eng";"7.06";2;5;u;
-47;"05c";"Frk";"Eng";"7.06";2;6;u;
+46;"05c";"Frk";"Eng";"7.06";2;8;;
+47;"05c";"Frk";"Eng";"7.06";3;6;;
 ```
 
 Here we can see, the course number for the same course could be different. This does not affect this program. <br>
@@ -366,12 +356,13 @@ Thousands of such lines make up the course list: <br>
 ```csv
 ...
 46;"05c";"Frk";"Eng";"7.06";1;6;;
-46;"05c";"Frk";"Eng";"7.06";2;5;u;
-46;"05c";"Frk";"Eng";"7.06";2;6;u;
+46;"05c";"Frk";"Eng";"7.06";2;8;;
+46;"05c";"Frk";"Eng";"7.06";3;6;;
 28;"08a";"Gar";"Deu";"5.01";1;1;;
 28;"08a";"Gar";"Deu";"5.01";1;2;;
 28;"08b";"Gar";"Deu";"5.02";2;3;;
-28;"08b";"Gar";"Deu";"5.02";2;4;;
+28;"08b";"Gar";"Deu";"5.02";3;8;;
+28;"08b";"Gar";"Deu";"5.02";3;9;;
 ...
 ```
 
@@ -397,6 +388,8 @@ To make it possible for us to work on this project together, we have set a few g
 All of the variables should be named with **English** words. <br>
 When you are using the abbreviation, make sure the most people could understand what you mean by it. <br>
 
+---
+
 We use the style as following: <br>
 
 |Kind|Rule|
@@ -409,15 +402,16 @@ We use the style as following: <br>
 |Class|PascalCase|
 |Method|PascalCase|
 
+---
 
-The controls of a windows form should start with its prefix, or, end with the full name as suffixes. <br>
+The controls of a windows form should start with its prefix. <br>
 For example: <br>
 
 ```
 btnOK
-OKButton
 ```
 
+---
 
 The callback functions should start with the caller name, then with an underscore `_` and then the event. <br>
 For example: <br>
@@ -426,6 +420,7 @@ For example: <br>
 private void btnSearch2_Click(object sender, EventArgs e)
 ```
 
+---
 
 Also: <br>
 Use static typing as much as possible. <br>
@@ -455,6 +450,8 @@ myVariable = 0
 Dim mySecondVariable
 mySecondVariable = ""
 ```
+
+---
 
 Use Indentation of 4 spaces for `loop`, `condition` and `class or method` sentences: <br>
 
@@ -491,6 +488,8 @@ End If
 End Sub
 ```
 
+---
+
 #### In addition, for VBA:
 
 Force to use an explicit declaration for every variables by adding the option at the top of the file: <br>
@@ -499,6 +498,7 @@ Force to use an explicit declaration for every variables by adding the option at
 Option Explicit
 ```
 
+___
 
 <a name="Deployment"></a>
 ## Deployment
@@ -509,7 +509,7 @@ You can find the install files at [**"Release"**](https://github.com/ChuangSheep
 
 It is **highly recommend to use the VSTO version** if possible since it is **much quicker, safer and more user-friendly**. <br>
 
-
+___
 
 <a name="DeploymentCSharp"></a>
 ### For C#
@@ -537,7 +537,7 @@ Or, if you have downloaded the source code, import them to your Visual Basic edi
 
 You can find [a detailed instruction by Microsoft of how to run a macro](https://support.office.com/en-us/article/run-a-macro-5e855fd2-02d1-45f5-90a3-50e645fe3155) here. <br>
 
-
+___
 
 <a name="BuiltWith"></a>
 ## Built With
@@ -546,10 +546,13 @@ You can find [a detailed instruction by Microsoft of how to run a macro](https:/
 
 * [PDFsharp](https://github.com/empira/PDFsharp) - A .Net library for processing PDF
 
+---
+
 ### VBA Addin:
 
 * None
 
+___
 
 <a name="License"></a>
 ## License

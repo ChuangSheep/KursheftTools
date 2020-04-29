@@ -12,6 +12,8 @@ namespace KursheftTools
 {
     public partial class FormForGeneratingPlans : Form
     {
+        private static readonly System.Globalization.CultureInfo DEUTSCHCULT = new System.Globalization.CultureInfo("de-DE");
+
         private readonly Excel.Worksheet _noteBoard;
         //Stores how many Pdfs are exported yet
         //It is a class member mainly because of the progress window
@@ -39,7 +41,7 @@ namespace KursheftTools
         {
             //Initialize the class menbers
             if (prds.Length == 3) _periods = prds;
-            else throw new ArgumentException("The augument \"prds\" does not have 3 items", "prds");
+            else throw new ArgumentException("The augument \"prds\" does not have 3 items", nameof(prds));
 
             _noteBoard = sheet;
             _coursePlan = coursePlan;
@@ -49,33 +51,37 @@ namespace KursheftTools
 
         private void btnSearch1_Click(object sender, EventArgs e)
         {
-            FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog
+            using (FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog
             {
                 Description = "Wählen Sie einen Ordner aus, um die PDF-Datei darunter zu speichern."
-            };
-
-            if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+            })
             {
-                string path = folderBrowserDialog.SelectedPath;
 
-                StoredIn.Text = path;
+                if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string path = folderBrowserDialog.SelectedPath;
+
+                    StoredIn.Text = path;
+                }
             }
         }
 
         private void btnSearch2_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog
+            using (OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Filter = "Image Files (*.png, *.jpg, *.jpeg) | *.png; *.jpg; *.jpeg",
                 RestoreDirectory = true,
                 Multiselect = false
-            };
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            })
             {
-                string path = openFileDialog.FileName;
 
-                LogoPath.Text = path;
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string path = openFileDialog.FileName;
+
+                    LogoPath.Text = path;
+                }
             }
         }
 
@@ -104,7 +110,7 @@ namespace KursheftTools
                 allRight = false;
             }
             //If there is a wrong value for the LogoPath
-            if (LogoPath.Text != "" && !File.Exists(LogoPath.Text))
+            if (!string.IsNullOrEmpty(LogoPath.Text) && !File.Exists(LogoPath.Text))
             {
                 LogoPath.BackColor = RED;
                 allRight = false;
@@ -165,6 +171,7 @@ namespace KursheftTools
 
                 MessageBox.Show($"{ExportedPDFs} PDF-Datei wurde erfolgreich exportiert unter\r\n {_PDFStorePath}", "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 DialogResult = DialogResult.Yes;
+
                 this.Close();
 
             }
@@ -211,19 +218,12 @@ namespace KursheftTools
                     {
                         //Check the subject and remove the illegal chars
                         //As the subjectList contains the strings like {Subject = GE} etc. 
-                        string a = currentSubject.ToString().Remove(0, 12);
-                        char[] cA = a.ToCharArray();
-                        a = "";
-                        for (int i = 0; i < cA.Length - 2; i++)
-                        {
-                            a += cA[i];
-                        }
-
+                        string sbj = currentSubject.ToString().Substring(12, currentSubject.ToString().Length - 2 - 12);
 
                         //Get the information of a specific course
-                        DataRow[] currentCourse = currentClassDT.Select($"Subject = '{a}'");
+                        DataRow[] currentCourse = currentClassDT.Select($"Subject = '{sbj}'");
 
-                        if (currentCourse.Length != 0 && (string)currentCourse[0].ItemArray[1] != "")
+                        if (currentCourse.Length != 0 && !string.IsNullOrEmpty((string)currentCourse[0].ItemArray[1]))
                         {
                             //Create a new plan
                             CoursePlan currentPlan = new CoursePlan(currentCourse[0].ItemArray[3].ToString(), currentCourse[0].ItemArray[1].ToString(),
@@ -236,17 +236,41 @@ namespace KursheftTools
                                 int indexOfRow = Array.IndexOf(currentCourse, row);
 
                                 //If this row does not contain any number or any class
-                                if ((string)row.ItemArray[0] == "" || (string)row.ItemArray[1] == "") continue;
+                                if (string.IsNullOrEmpty((string)row.ItemArray[0]) || string.IsNullOrEmpty((string)row.ItemArray[1])) continue;
                                 //If this is the first line or the dates are not the same
                                 if (indexOfRow == 0 ||
-                                    DateTime.Compare(DateTimeCalcUtils.GetNearestWeekdayS(_periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString()))), currentDT.Last()) != 0)
+                                    DateTime.Compare(DateTimeCalcUtils.GetNearestWeekdayS(_periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString(), DEUTSCHCULT))), currentDT.Last()) != 0)
                                 {
-                                    currentDT.Add(DateTimeCalcUtils.GetNearestWeekdayS(_periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString()))));
-                                    currentIsRegular.Add(currentCourse[indexOfRow].ItemArray[7].ToString());
+                                    currentDT.Add(DateTimeCalcUtils.GetNearestWeekdayS(_periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString(), DEUTSCHCULT))));
+                                    
+                                    //If the course is on the 8th hour, then it will only be on even weeks
+                                    if (row.ItemArray[6].ToString() == "8")
+                                    {
+                                        currentIsRegular.Add("g");
+                                    }
+                                    //On the 9th hour, then only on odd weeks
+                                    else if (row.ItemArray[6].ToString() == "9")
+                                    {
+                                        currentIsRegular.Add("u");
+                                    }
+                                    //Otherwise every week
+                                    else
+                                    {
+                                        currentIsRegular.Add("");
+                                    }
                                 }
                                 //If the isRegular value, however, are not the same, then if there's a course on this day on every week, set isRegular to regular("")
-                                else if ("" != currentIsRegular.Last() && row.ItemArray[7].ToString() != currentIsRegular.Last()) currentIsRegular[currentIsRegular.Count - 1] = "";
-
+                                else if (!string.IsNullOrEmpty(currentIsRegular.Last()) && 
+                                            //If this course will be held on 8th AND on 9th hour
+                                            //Then change the IsRegular to every week
+                                            (
+                                            (row.ItemArray[6].ToString() != "8" && row.ItemArray[6].ToString() != "9") ||
+                                            (row.ItemArray[6].ToString() == "8" && currentIsRegular.Last() == "u") ||
+                                            (row.ItemArray[6].ToString() == "9" && currentIsRegular.Last() == "g"))
+                                            )
+                                {
+                                    currentIsRegular[currentIsRegular.Count - 1] = "";
+                                }
                             }
 
                             //Add them to the list
@@ -281,7 +305,7 @@ namespace KursheftTools
                     currentCoursePlan.ReadNoteBoard(_noteBoard, dates[i], isRegular[i]);
                     //After all the note board processed
                     //Export the current course plan
-                    currentCoursePlan.ExportAsPDF(_periods, _PDFStorePath, _logoStorePath != "" ? _logoStorePath : "default");
+                    _ = currentCoursePlan.ExportAsPDF(_periods, _PDFStorePath, !string.IsNullOrEmpty(_logoStorePath) ? _logoStorePath : "default");
                     CurrentInfo = $"{currentCoursePlan.GetTitle()} wurde exportiert. ";
                     ExportedPDFs++;
                 }

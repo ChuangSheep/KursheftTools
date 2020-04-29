@@ -14,6 +14,7 @@ namespace KursheftTools
     [ComVisible(true)]
     public class RibbonUI : Office.IRibbonExtensibility
     {
+        private static readonly CultureInfo DEUTSCHCULT = new CultureInfo("de-DE");
         private Office.IRibbonUI ribbon;
 
         public RibbonUI()
@@ -48,8 +49,8 @@ namespace KursheftTools
         public void btnCreateNoteboard_Click(Office.IRibbonControl ctrl)
         {
             //Show a window where it asks you to input the dates for this half year
-            FormForGeneratingNoteBoard ffgs2 = new FormForGeneratingNoteBoard();
-            ffgs2.ShowDialog();
+            using (FormForGeneratingNoteBoard ffgs2 = new FormForGeneratingNoteBoard())
+                ffgs2.ShowDialog();
         }
 
 
@@ -58,20 +59,22 @@ namespace KursheftTools
         /// </summary>
         public void btnImportCourse_Click(Office.IRibbonControl ctrl)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog
+            using (OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Multiselect = false,
                 RestoreDirectory = true,
                 Filter = "Kursliste (*.csv)|*.csv"
-            };
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            })
             {
-                string coursePlanPath = openFileDialog.FileName;
-                //set the names of the columns in the datatable CoursePlan CHANGE IF THE FORMAT IS CHANGED
-                string[] columnNames = new string[9] { "CourseNumber", "Class", "Teacher", "Subject", "Room", "Weekday", "Hour", "U/G", "" };
-                _coursePlan = CSVUtils.ImportCSVasDT(coursePlanPath, "Course Plan", false, columnNames);
-                MessageBox.Show("Der Kursplan wurde importiert.", "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string coursePlanPath = openFileDialog.FileName;
+                    //set the names of the columns in the datatable CoursePlan CHANGE IF THE FORMAT IS CHANGED
+                    string[] columnNames = new string[9] { "CourseNumber", "Class", "Teacher", "Subject", "Room", "Weekday", "Hour", "U/G", "" };
+                    _coursePlan = CSVUtils.ImportCSVasDT(coursePlanPath, "Course Plan", false, columnNames);
+                    MessageBox.Show("Der Kursplan wurde importiert.", "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
         }
 
@@ -128,9 +131,8 @@ namespace KursheftTools
                     periods[Array.IndexOf(datesStrings, s)] = DateTime.ParseExact(s, "dd-MM-yyyy", new CultureInfo("de-DE"));
                 }
 
-                FormForGeneratingPlans form = new FormForGeneratingPlans(noteBoard, periods, _coursePlan);
-
-                form.ShowDialog();
+                using (FormForGeneratingPlans form = new FormForGeneratingPlans(noteBoard, periods, _coursePlan))
+                    form.ShowDialog();
             }
 
 
@@ -148,116 +150,120 @@ namespace KursheftTools
             Globals.ThisAddIn.Application.DisplayAlerts = false;
 
             //Initialize the dialog window for saving pdfs: 
-            SaveFileDialog saveFileDialog = new SaveFileDialog
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog
             {
                 Filter = "Bemerkungsbogen (*.xlsx)|*.xlsx",
                 DefaultExt = "Bemerkungsbogen.xlsx"
-            };
-
-            //Store the active workbook and worksheet
-            bool isRightSheet = true;
-            Excel.Worksheet sheet = Globals.ThisAddIn.Application.ActiveSheet;
-            Excel.Workbook book = Globals.ThisAddIn.Application.ActiveWorkbook;
-
-            //try to get the dates of this half year from the notes table
-            //If can't find, then ask the user to recreate a table or change to the right page
-            try
+            })
             {
-                var datesCell = sheet.get_Range("I1", Type.Missing).Value2;
-                string[] datesStrings = datesCell.Split('~');
-            }
-            catch (FormatException Fe)
-            {
-                System.Diagnostics.Debug.WriteLine(Fe);
-                isRightSheet = false;
-                MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existert nicht\r\nSind Sie vielleicht auf falscher Seite?", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (RuntimeBinderException Re)
-            {
-                System.Diagnostics.Debug.WriteLine(Re);
-                MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existert nicht\r\nSind Sie vielleicht auf falscher Seite?", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                isRightSheet = false;
-            }
 
-            //Let the user to choose the place to save the pdfs
-            //If the user doesn't, then stop
-            if (isRightSheet && saveFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                string storePath = saveFileDialog.FileName;
+                //Store the active workbook and worksheet
+                bool isRightSheet = true;
+                Excel.Worksheet sheet = Globals.ThisAddIn.Application.ActiveSheet;
+                Excel.Workbook book = Globals.ThisAddIn.Application.ActiveWorkbook;
 
-                Globals.ThisAddIn.Application.ScreenUpdating = false;
-                var newWorkbook = Globals.ThisAddIn.Application.Workbooks.Add();
-                sheet.Copy(newWorkbook.Sheets[1]);
-                ((Excel.Worksheet)newWorkbook.Worksheets[2]).Delete();
-                ((Excel.Worksheet)newWorkbook.Worksheets[1]).Name = "Bemerkungsbogen";
-
+                //try to get the dates of this half year from the notes table
+                //If can't find, then ask the user to recreate a table or change to the right page
                 try
                 {
-                    newWorkbook.SaveAs(storePath);
+                    var datesCell = sheet.get_Range("I1", Type.Missing).Value2;
+                    string[] datesStrings = datesCell.Split('~');
                 }
-                catch (COMException e)
+                catch (FormatException Fe)
                 {
-                    System.Diagnostics.Debug.WriteLine(e);
-                    book.Save();
+                    System.Diagnostics.Debug.WriteLine(Fe);
+                    isRightSheet = false;
+                    MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existert nicht\r\nSind Sie vielleicht auf falscher Seite?", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                catch (RuntimeBinderException Re)
+                {
+                    System.Diagnostics.Debug.WriteLine(Re);
+                    MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existert nicht\r\nSind Sie vielleicht auf falscher Seite?", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    isRightSheet = false;
                 }
 
-                newWorkbook.Close();
-            }
+                //Let the user to choose the place to save the pdfs
+                //If the user doesn't, then stop
+                if (isRightSheet && saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    string storePath = saveFileDialog.FileName;
 
+                    Globals.ThisAddIn.Application.ScreenUpdating = false;
+                    var newWorkbook = Globals.ThisAddIn.Application.Workbooks.Add();
+                    sheet.Copy(newWorkbook.Sheets[1]);
+                    ((Excel.Worksheet)newWorkbook.Worksheets[2]).Delete();
+                    ((Excel.Worksheet)newWorkbook.Worksheets[1]).Name = "Bemerkungsbogen";
+
+                    try
+                    {
+                        newWorkbook.SaveAs(storePath);
+                    }
+                    catch (COMException e)
+                    {
+                        System.Diagnostics.Debug.WriteLine(e);
+                        book.Save();
+                    }
+
+                    newWorkbook.Close();
+                }
+            }
             Globals.ThisAddIn.Application.ScreenUpdating = true;
             Globals.ThisAddIn.Application.DisplayAlerts = true;
         }
 
         public void btnImportNoteboard_Click(Office.IRibbonControl ctrl)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog
+            using (OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Filter = "Bemerkungsbogen (*.xlsx)|*.xlsx",
                 RestoreDirectory = true,
                 Multiselect = false
-            };
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            })
             {
-                string dataPath = openFileDialog.FileName;
 
-                try
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    Excel.Workbook noteWB = Globals.ThisAddIn.Application.Workbooks.Open(dataPath);
-                    Excel.Worksheet noteSheet = noteWB.Worksheets[1];
+                    string dataPath = openFileDialog.FileName;
 
-                    var datesCell = noteSheet.get_Range("I1", System.Type.Missing).Value2;
-                    //Try to split the dates
-                    string[] datesStrings = datesCell.Split('~');
-                    //Maybe we should handle this situation with another way
-                    if (datesStrings.Length != 3) throw new ArgumentException();
-                    DateTime[] dts = new DateTime[3] { DateTime.Parse(datesStrings[0]), DateTime.Parse(datesStrings[1]), DateTime.Parse(datesStrings[2]) };
-                }
-                catch (ArgumentNullException)
-                {
-                    System.Diagnostics.Debug.WriteLine("Argument null!");
-                    MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existiert nicht.\r\nImportieren oder Erstellen Sie einen Neuen.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                catch (ArgumentException)
-                {
-                    System.Diagnostics.Debug.WriteLine("length of the array datesStrings");
-                    MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existiert nicht.\r\nImportieren oder Erstellen Sie einen Neuen.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    try
+                    {
+                        Excel.Workbook noteWB = Globals.ThisAddIn.Application.Workbooks.Open(dataPath);
+                        Excel.Worksheet noteSheet = noteWB.Worksheets[1];
 
-                }
-                catch (RuntimeBinderException)
-                {
-                    System.Diagnostics.Debug.WriteLine("RBE: did not find the dates");
-                    MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existiert nicht.\r\nImportieren oder Erstellen Sie einen Neuen.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                catch (FormatException)
-                {
-                    System.Diagnostics.Debug.WriteLine("Format: dates are not correct");
-                    MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existiert nicht.\r\nImportieren oder Erstellen Sie einen Neuen.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
-                catch (Exception e)
-                {
-                    System.Diagnostics.Debug.WriteLine("Generic Error at RibbonUI: ");
-                    System.Diagnostics.Debug.WriteLine(e);
+                        var datesCell = noteSheet.get_Range("I1", System.Type.Missing).Value2;
+                        //Try to split the dates
+                        string[] datesStrings = datesCell.Split('~');
+                        //Maybe we should handle this situation with another way
+                        if (datesStrings.Length != 3) throw new ArgumentException("The length of the date string array is not three", nameof(datesStrings));
+                        DateTime[] dts = new DateTime[3] { DateTime.Parse(datesStrings[0], DEUTSCHCULT), DateTime.Parse(datesStrings[1], DEUTSCHCULT), DateTime.Parse(datesStrings[2], DEUTSCHCULT) };
+                    }
+                    catch (ArgumentNullException)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Argument null!");
+                        MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existiert nicht.\r\nImportieren oder Erstellen Sie einen Neuen.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    catch (ArgumentException)
+                    {
+                        System.Diagnostics.Debug.WriteLine("length of the array datesStrings");
+                        MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existiert nicht.\r\nImportieren oder Erstellen Sie einen Neuen.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                    }
+                    catch (RuntimeBinderException)
+                    {
+                        System.Diagnostics.Debug.WriteLine("RBE: did not find the dates");
+                        MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existiert nicht.\r\nImportieren oder Erstellen Sie einen Neuen.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    catch (FormatException)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Format: dates are not correct");
+                        MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existiert nicht.\r\nImportieren oder Erstellen Sie einen Neuen.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    catch (Exception e)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Generic Error at RibbonUI: ");
+                        System.Diagnostics.Debug.WriteLine(e);
+                        throw;
+                    }
                 }
             }
 
@@ -266,14 +272,14 @@ namespace KursheftTools
 
         public void btnInformation_Click(Office.IRibbonControl ctrl)
         {
-            FormAbout aboutForm = new FormAbout();
-            aboutForm.ShowDialog();
+            using (FormAbout aboutForm = new FormAbout())
+                aboutForm.ShowDialog();
         }
 
         public void btnLicenses_Click(Office.IRibbonControl ctrl)
         {
-            FormLicense fl = new FormLicense();
-            fl.ShowDialog();
+            using (FormLicense fl = new FormLicense())
+                fl.ShowDialog();
         }
         #endregion
 

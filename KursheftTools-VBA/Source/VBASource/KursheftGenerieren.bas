@@ -6,7 +6,7 @@ Attribute VB_Name = "KursheftGenerieren"
 ' Copyright 2020 (c)
 '
 ' ----------------------------------------
-'Version 1.0.1.0
+'Version 1.0.2.0
 
 Option Explicit
 
@@ -153,8 +153,6 @@ If DialogResult Then
                 'If the grade is Q1 or Q2, or the grade between 05-09
                 If gradeL = courseListS.Cells(i, 2) Or gradeL = Left(courseListS.Cells(i, 2), 2) Then
                     If (Not (courseListS.Cells(i, 1) = "" Or courseListS.Cells(i, 2) = "" Or courseListS.Cells(i, 3) = "")) Then
-                        'jump the line without a course number or without a class
-                        Debug.Print "course list csv empty course number: line: " & CStr(i)
                         If ((currentCourseClass = courseListS.Cells(i, 2)) And (currentCourseName = courseListS.Cells(i, 4))) Then
                             'If the current course number and so as the same class is also for this line
                         
@@ -163,9 +161,25 @@ If DialogResult Then
                                 ReDim Preserve dts(GetArrayLength(dts))
                                 dts(GetArrayLength(dts) - 1) = getNearestDateForWeekday(courseListS.Cells(i, 6), datePeriods(0))
                                 ReDim Preserve isRegular(GetArrayLength(isRegular))
-                                isRegular(GetArrayLength(isRegular) - 1) = courseListS.Cells(i, 8).value
-                            ElseIf (courseListS.Cells(i, 8).value <> isRegular(GetArrayLength(isRegular) - 1)) And (isRegular(GetArrayLength(isRegular) - 1) <> "") Then
-                                isRegular(GetArrayLength(isRegular) - 1) = courseListS.Cells(i, 8).value
+                                
+                                'Check the hour if it is the 8th or 9th
+                                If courseListS.Cells(i, 7).text = "8" Then
+                                    isRegular(GetArrayLength(isRegular) - 1) = "g"
+                                ElseIf courseListS.Cells(i, 7).text = "9" Then
+                                    isRegular(GetArrayLength(isRegular) - 1) = "u"
+                                'Otherwise set isRegular to empty
+                                Else
+                                    isRegular(GetArrayLength(isRegular) - 1) = ""
+                                End If
+                                    
+                            'Else if this row is the same day of the last row
+                            'Test if this course should be held every week
+                            'If so, change the value of isRegular
+                            ElseIf ((isRegular(GetArrayLength(isRegular) - 1) <> "" And _
+                                        ((courseListS.Cells(i, 7).text <> "8" And courseListS.Cells(i, 7).text <> "9") Or _
+                                        (courseListS.Cells(i, 7).text = "8" And isRegular(GetArrayLength(isRegular) - 1) = "u")) Or _
+                                        (courseListS.Cells(i, 7).text = "9" And isRegular(GetArrayLength(isRegular) - 1) = "g"))) Then
+                                isRegular(GetArrayLength(isRegular) - 1) = ""
                             End If
                         Else
                             'Handle the new course now
@@ -175,7 +189,15 @@ If DialogResult Then
                             ReDim dts(0)
                             dts(0) = getNearestDateForWeekday(courseListS.Cells(i, 6), datePeriods(0))
                             ReDim isRegular(0)
-                            isRegular(0) = courseListS.Cells(i, 8).value
+                            'Check the hour if it is the 8th or 9th
+                            If courseListS.Cells(i, 7).text = "8" Then
+                                isRegular(0) = "g"
+                            ElseIf courseListS.Cells(i, 7).text = "9" Then
+                                isRegular(0) = "u"
+                            'Otherwise set isRegular to empty
+                            Else
+                                isRegular(0) = ""
+                            End If
                         End If
         
         

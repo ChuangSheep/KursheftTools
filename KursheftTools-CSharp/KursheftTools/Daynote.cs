@@ -24,7 +24,7 @@ namespace KursheftTools
         /// <param name="note">A string represents the note that needs to be added</param>
         public void AddNote(string note)
         {
-            if (note != "") _notes.Add(note);
+            if (!string.IsNullOrEmpty(note)) _notes.Add(note);
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace KursheftTools
         /// <returns>A string in "dd-MM-yyyy" format</returns>
         public string GetDateS()
         {
-            return _date.ToString("dd-MM-yyyy");
+            return _date.ToString("dd-MM-yyyy", new System.Globalization.CultureInfo("de-DE"));
         }
 
         /// <summary>

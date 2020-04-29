@@ -9,6 +9,7 @@ namespace KursheftTools
 {
     public partial class FormForGeneratingNoteBoard : Form
     {
+        private static readonly CultureInfo DEUTSCHCULT = new CultureInfo("de-DE");
         public FormForGeneratingNoteBoard()
         {
             InitializeComponent();
@@ -34,7 +35,7 @@ namespace KursheftTools
                 tbx.BackColor = Color.White;
                 try
                 {
-                    periods[Array.IndexOf(textboxes, tbx)] = DateTime.ParseExact(tbx.Text, "dd-MM-yyyy", new CultureInfo("de-DE"));
+                    periods[Array.IndexOf(textboxes, tbx)] = DateTime.ParseExact(tbx.Text, "dd-MM-yyyy", DEUTSCHCULT);
                     if (DateTimeCalcUtils.GetWeekday(periods[Array.IndexOf(textboxes, tbx)]) == "Sa" ||
                         DateTimeCalcUtils.GetWeekday(periods[Array.IndexOf(textboxes, tbx)]) == "So") throw new FormatException("The dates could not be on the weekends");
                 }
@@ -48,6 +49,7 @@ namespace KursheftTools
                 {
                     Console.WriteLine("Error in \'FormForGeneratingSheet2.cs\'");
                     Console.WriteLine($"Generic Exception Handler: {err}");
+                    throw;
                 }
             }
 
@@ -99,7 +101,7 @@ namespace KursheftTools
         /// <returns>A boolean value represents whether this operation finished successfully or not</returns>
         private bool CreateBoard(DateTime[] dates)
         {
-            if (dates.Length != 3) throw new ArgumentException("The augument \"dates\" (array of DateTime) must have 3 items", "dates");
+            if (dates.Length != 3) throw new ArgumentException("The augument \"dates\" (array of DateTime) must have 3 items", nameof(dates));
 
             //start a new sheet 
             Excel.Worksheet sheet1;
@@ -125,7 +127,7 @@ namespace KursheftTools
             //Titles:
             sheet1.Cells[1, 1] = "Wochentage";
             sheet1.Cells[1, 2] = "Datum";
-            sheet1.Cells[1, 9] = dates[0].ToString("dd-MM-yyyy") + "~" + dates[1].ToString("dd-MM-yyyy") + "~" + dates[2].ToString("dd-MM-yyyy");
+            sheet1.Cells[1, 9] = dates[0].ToString("dd-MM-yyyy", DEUTSCHCULT) + "~" + dates[1].ToString("dd-MM-yyyy", DEUTSCHCULT) + "~" + dates[2].ToString("dd-MM-yyyy", DEUTSCHCULT);
             sheet1.Cells[1, 1].EntireRow.Font.Bold = true;
             sheet1.Cells[1, 1].EntireRow.Font.Size = 14;
 

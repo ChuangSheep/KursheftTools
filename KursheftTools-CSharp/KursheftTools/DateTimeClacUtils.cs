@@ -65,7 +65,7 @@ namespace KursheftTools
                 case 5: return "Fr";
                 case 6: return "Sa";
                 case 7: return "So";
-                default: throw new ArgumentException("The inputed argument weekday is not an Integer between 1-7", "weekday");
+                default: throw new ArgumentException("The inputed argument weekday is not an Integer between 1-7", nameof(weekday));
             }
         }
 
@@ -103,7 +103,9 @@ namespace KursheftTools
         /// <param name="associatedArr">Another array. The order of items in this array will be changed if the dateArr is changed.</param>
         public static void SortDate <T> (ref DateTime[] dateArr, ref T[] associatedArr)
         {
-            if (dateArr.Length != associatedArr.Length) throw new ArgumentException("The given two arrays dont have the same numbers of items", "associatedArr");
+            if (dateArr == null) throw new ArgumentNullException(nameof(dateArr), "The date array is null");
+            if (associatedArr == null) throw new ArgumentNullException(nameof(associatedArr), "The array associated with the date array is null");
+            if (dateArr.Length != associatedArr.Length) throw new ArgumentException("The given two arrays dont have the same numbers of items", nameof(associatedArr));
             for (int i = 0; i < dateArr.Length - 1; i++)
             {
                 for (int j = 0; j < dateArr.Length - 1; j++)
@@ -127,7 +129,7 @@ namespace KursheftTools
         /// <param name="index2">The second item</param>
         private static void ArrSwap<T>(ref T[] Arr, int index1, int index2)
         {
-            if (index1 > Arr.Length || index2 > Arr.Length) throw new ArgumentException($"The given index is out of range: {index1}, {index2}", "index1 or index 2");
+            if (index1 > Arr.Length || index2 > Arr.Length) throw new ArgumentException($"The given index is out of range: {index1}, {index2}", nameof(index1));
             T cache = Arr[index1];
             Arr[index1] = Arr[index2];
             Arr[index2] = cache;

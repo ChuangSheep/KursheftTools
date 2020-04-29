@@ -6,7 +6,7 @@ Attribute VB_Name = "BemerkungsbogenErstellen"
 ' Copyright 2020 (c)
 '
 ' ----------------------------------------
-'Version 1.0.1.0
+'Version 1.0.2.0
 
 
 Option Explicit

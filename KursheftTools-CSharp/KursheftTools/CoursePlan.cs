@@ -150,7 +150,7 @@ namespace KursheftTools
             else
             {
                 XImage lgIcon = XImage.FromFile(logoFilePath);
-                if (lgIcon == null) throw new ArgumentNullException("lgIcon", "the stream of the icon is null");
+                if (lgIcon == null) throw new ArgumentNullException(nameof(logoFilePath), "the stream of this file path is null");
                 xGps.DrawImage(lgIcon, 0, 0, Formats.GetPixel(46), Formats.GetPixel(30));
 
                 XRect rectSubtitle = new XRect(Formats.GetPixel(55), Formats.GetPixel(2), Formats.GetPixel(100), Formats.GetPixel(10));
@@ -164,7 +164,7 @@ namespace KursheftTools
             //Set the current date and the half year
             DateTime dtNow = DateTime.Now;
             XRect rectDate = new XRect(Formats.GetPixel(180), Formats.GetPixel(2), Formats.GetPixel(28), Formats.GetPixel(5));
-            xGps.DrawString("Stand: " + dtNow.ToString("dd-MM-yyyy"), regularFont, XBrushes.Gray, rectDate, XStringFormats.TopRight);
+            xGps.DrawString($"Stand: {dtNow:dd-MM-yyyy}", regularFont, XBrushes.Gray, rectDate, XStringFormats.TopRight);
 
             XRect rectYear = new XRect(Formats.GetPixel(180), Formats.GetPixel(7), Formats.GetPixel(28), Formats.GetPixel(5));
             xGps.DrawString(DateTimeCalcUtils.GetHalfYear(this._lines[0].GetDate()), boldFont, XBrushes.Gray, rectYear, XStringFormats.TopRight);
@@ -302,7 +302,7 @@ namespace KursheftTools
                 if (DateTime.Compare(lineDate, dates[k]) == 0)
                 {
                     //If this weekday is regular, or it fits to the rule
-                    if (isRegular[k] == "" ||
+                    if (string.IsNullOrEmpty(isRegular[k]) ||
                         (DateTimeCalcUtils.IsEvenWeek(lineDate) && isRegular[k] == "g") ||
                         (!DateTimeCalcUtils.IsEvenWeek(lineDate) && isRegular[k] == "u"))
                     {
