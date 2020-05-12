@@ -77,7 +77,7 @@ End Function
 '''<param name="isShortForm" optional=True>A boolean Value represents whether the return is in short form or full form</param>
 '''<return>A string represents the weekday in short form or in long form in German. ex. Mo, Di/ Montag, Dienstag </return>
 '''<exception cref="vbObjectError + 3001">ArgumentException: The given "Pweekday" is not valid</exception>
-Public Function DecimalGetWeekdayAsString(weekday As Integer, Optional isShortForm As Boolean = False) As String
+Public Function DecimalGetWeekdayAsString(ByVal weekday As Integer, Optional ByVal isShortForm As Boolean = False) As String
 
 Select Case weekday
     Case 1
@@ -111,7 +111,7 @@ End Function
 '''<param name="isShortForm" optional=True>A boolean Value represents whether the return is in short form or full form</param>
 '''<return>A string represents the weekday in short form or in long form in German. ex. Mo, Di/ Montag, Dienstag etc. </return>
 '''<exception cref="vbObjectError + 3001">ArgumentException: The given "dt" is not valid</exception>
-Public Function DateGetWeekdayAsString(dt As Date, Optional isShortForm As Boolean = False) As String
+Public Function DateGetWeekdayAsString(ByVal dt As Date, Optional ByVal isShortForm As Boolean = False) As String
 
 Dim weekday_ As Integer
 weekday_ = weekday(dt, vbMonday)
@@ -148,9 +148,9 @@ End Function
 '''<param name="dt">The date in Date object</param>
 '''<param name="format" optional=True>The Format of the returned string</param>
 '''<return>A string represents the given date</return>
-Public Function getDateS(dt, Optional Pformat As String = "dd-MM-yyyy") As String
+Public Function GetDateS(ByVal dt As Date, Optional ByVal preFormat As String = "dd-MM-yyyy") As String
 
-getDateS = format(dt, Pformat, vbMonday, vbFirstJan1)
+GetDateS = Format(dt, preFormat, vbMonday, vbFirstJan1)
 
 End Function
 
@@ -159,11 +159,11 @@ End Function
 '''<param name="startDate">The first day</param>
 '''<return>A date object represents the nearest weekday after the given start date</return>
 '''<exception cref="vbObjectError + 3001">ArgumentException: The given "weekdayI" is not valid</exception>
-Public Function getNearestDateForWeekday(ByVal weekdayI As Integer, ByVal startDate As Date) As Date
+Public Function GetNearestDateForWeekday(ByVal weekdayI As Integer, ByVal startDate As Date) As Date
 
 If (weekday(startDate, vbMonday) = weekdayI) Then
 
-    getNearestDateForWeekday = startDate
+    GetNearestDateForWeekday = startDate
     Exit Function
 
 Dim i As Integer
@@ -173,7 +173,7 @@ Else
     startDate = DateAdd("d", 1, startDate)
     
     If (weekday(startDate, vbMonday) = weekdayI) Then
-        getNearestDateForWeekday = startDate
+        GetNearestDateForWeekday = startDate
         Exit Function
         
     End If
@@ -190,9 +190,9 @@ End Function
 '''We assume the valid string would be:
 '''dd-MM-yyyy</param>
 '''<return>a boolean value represents whether the given string is valid or not</return>
-Public Function dateIsValid(ByVal Dates As String) As Boolean
+Public Function DateIsValid(ByVal dates As String) As Boolean
 
-dateIsValid = True
+DateIsValid = True
 'Change this constant if the seperator is changed
 Const SEPERATOR As String = "-"
 
@@ -203,33 +203,33 @@ Dim SHORTMONTH As Variant
 SHORTMONTH = Array(4, 6, 9, 11)
 
 'If the String is not long enouth, then not valid
-If Not (Len(Dates) = 10) Then
-dateIsValid = False
+If Not (Len(dates) = 10) Then
+DateIsValid = False
 End If
 
 'If the string is not right(have less or more than 2 "-"
-If Not (GetArrayLength(Split(Dates, SEPERATOR)) = 3) Then
-dateIsValid = False
+If Not (GetArrayLength(Split(dates, SEPERATOR)) = 3) Then
+DateIsValid = False
 Exit Function
 End If
 
 
 'spilt the string
 Dim spiltedStringDate
-spiltedStringDate = Split(Dates, SEPERATOR)
+spiltedStringDate = Split(dates, SEPERATOR)
 
 
 'If the Year is valid
 Dim year As Integer
 year = CInt(spiltedStringDate(2))
 If year < 1 Or year > 2100 Then
-dateIsValid = False
+DateIsValid = False
 Exit Function
 End If
 
 'If the Month is valid
 If CInt(spiltedStringDate(1)) > 13 Or 1 > CInt(spiltedStringDate(0)) Then
-dateIsValid = False
+DateIsValid = False
 Exit Function
 End If
 
@@ -241,7 +241,7 @@ Dim Month1
 For Each Month1 In LONGMONTH
     If CInt(Month1) = CInt(spiltedStringDate(1)) Then
         If CInt(spiltedStringDate(0)) > 31 Or CInt(spiltedStringDate(0)) < 1 Then
-            dateIsValid = False
+            DateIsValid = False
             Exit Function
         End If
     End If
@@ -252,7 +252,7 @@ Dim Month2
 For Each Month2 In SHORTMONTH
     If CInt(Month2) = CInt(spiltedStringDate(1)) Then
         If CInt(spiltedStringDate(0)) > 30 Or CInt(spiltedStringDate(0)) < 1 Then
-            dateIsValid = False
+            DateIsValid = False
             Exit Function
         End If
     End If
@@ -264,12 +264,12 @@ Next Month2
 If CInt(spiltedStringDate(1)) = 2 Then
     If IsLeapYear(year) Then
         If CInt(spiltedStringDate(0)) > 29 Or CInt(spiltedStringDate(0)) < 1 Then
-        dateIsValid = False
+        DateIsValid = False
         Exit Function
     End If
     Else
         If CInt(spiltedStringDate(0)) > 28 Or CInt(spiltedStringDate(0)) < 1 Then
-            dateIsValid = False
+            DateIsValid = False
             Exit Function
         End If
     End If
@@ -283,7 +283,7 @@ End Function
 '''<summary>Check the given year, if it's leap year, return True, else return False</summary>
 '''<param name="year">The year to be checked</param>
 '''<return>A boolean value that represents whether that year is leap year or not</return>
-Public Function IsLeapYear(year As Integer) As Boolean
+Public Function IsLeapYear(ByVal year As Integer) As Boolean
 
 If year Mod 100 = 0 Then
     If year Mod 400 = 0 Then
@@ -307,7 +307,7 @@ End Function
 '''We assume the valid string would be:
 '''dd-MM-yyyy </param>
 '''<return>A Date object represents the date of the given string</return>
-Public Function convertStringToDate(dateStr As String) As Date
+Public Function ConvertStringToDate(ByVal dateStr As String) As Date
 
 'Change this constant if the seperator is changed
 Const SEPERATOR As String = "-"
@@ -317,7 +317,7 @@ Dim spiltedSDate As Variant
 spiltedSDate = Split(dateStr, SEPERATOR)
 
 'convert the date from string to date object
-convertStringToDate = DateSerial(spiltedSDate(2), spiltedSDate(1), spiltedSDate(0))
+ConvertStringToDate = DateSerial(spiltedSDate(2), spiltedSDate(1), spiltedSDate(0))
 End Function
 
 '''<summary>Sort the dates in the given array from early to late</summary>
@@ -326,7 +326,7 @@ End Function
 '''<return>2-Dimensioned array: The changed array with the other arrays that relate to the dates array
 '''         The array of the date will be returned as the first item of the returned array
 '''         The other arrays will be returned as the same order when they were given</return>
-Public Function SortDates(datesArr, Optional arr) As Variant()
+Public Function SortDates(ByVal datesArr, Optional ByVal arr) As Variant()
 
 
     Dim cacheArr
@@ -364,11 +364,11 @@ End Function
 '''<summary>Get to know which half year is the given date in</smmary>
 '''<param name="dt">The date object</param>
 '''<return>A integer of 1 or 2 represents whether the given date is in the first half year or the second</return>
-Public Function GetHalfYearNum(dt As Date) As Integer
+Public Function GetHalfYearNum(ByVal dt As Date) As Integer
 
-    If CInt(format(dt, "ww")) < 30 Then
+    If CInt(Format(dt, "ww")) <= 30 Then
         GetHalfYearNum = 1
-    ElseIf CInt(format(dt, "ww")) > 30 Then
+    ElseIf CInt(Format(dt, "ww")) > 30 Then
         GetHalfYearNum = 2
     End If
 
@@ -378,12 +378,12 @@ End Function
 '''<summary>Get the school year of the given date and return a string of it</summary>
 '''<param name="dt">The date object</param>
 '''<return>A string represents the half year of the given date</return>
-Public Function GetSchoolYear(dt As Date) As String
+Public Function GetSchoolYear(ByVal dt As Date) As String
 
     If GetHalfYearNum(dt) = 1 Then
-        GetSchoolYear = "2. Halbjahr " & format(DateAdd("d", -365, dt), "yyyy") & "/" & format(dt, "yy")
+        GetSchoolYear = "2. Halbjahr " & Format(DateAdd("d", -365, dt), "yyyy") & "/" & Format(dt, "yy")
     Else
-        GetSchoolYear = "1. Halbjahr " & format(dt, "yyyy") & "/" & format(DateAdd("d", 365, dt), "yy")
+        GetSchoolYear = "1. Halbjahr " & Format(dt, "yyyy") & "/" & Format(DateAdd("d", 365, dt), "yy")
     End If
 
 End Function
@@ -391,28 +391,14 @@ End Function
 '''<summary>Indicate whether the give date is in a even week or in an odd week</summary>
 '''<param name="dt">The date</param>
 '''<return>A boolean value represents whether the given date is in a even week or not</return>
-Public Function isEvenWeek(dt As Date) As Boolean
+Public Function IsEvenWeek(ByVal dt As Date) As Boolean
 
-    isEvenWeek = ((CInt(format(dt, "ww", vbMonday)) Mod 2) = 0)
+    IsEvenWeek = ((CInt(Format(dt, "ww", vbMonday)) Mod 2) = 0)
 
 End Function
 
 '------Private Functions----------------------
 
-
-'''<summary>Get the Length of an array</summary>
-'''<param name="ary">As Variant: the array</param>
-'''<return>The length of that array in Integer</return>
-Private Function GetArrayLength(ByVal ary) As Integer
-
-If Not IsDimensioned(ary) Then
-    GetArrayLength = 0
-    Exit Function
-End If
-
-GetArrayLength = UBound(ary) - LBound(ary) + 1
-
-End Function
 
 
 '''<summary>Change the items of the given array on the two indexs

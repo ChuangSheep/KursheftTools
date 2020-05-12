@@ -6,7 +6,7 @@ Attribute VB_Name = "BemerkungsbogenErstellen"
 ' Copyright 2020 (c)
 '
 ' ----------------------------------------
-'Version 1.0.2.0
+'Version 1.0.2.1
 
 
 Option Explicit
@@ -112,9 +112,9 @@ End Function
 
 '''<summary>Create a note board on the given sheet based on the given dates</summary>
 '''<param name="sheet">A Excel sheet object indicating the board sheet</param>
-'''<param name="dates">An array containing 3 dates' object which represent the start of the
+'''<param name="dts">An array containing 3 dates' object which represent the start of the
 ''' first period, the start of the second period and the end of the year</param>
-Private Sub CreateBoard(sheet As Object, Dates())
+Private Sub CreateBoard(sheet As Object, dts)
 
 Const STARTT1 As String = "Anfang d. 1. Abschnitts"
 Const STARTT2 As String = "Anfang d. 2. Abschnitts"
@@ -127,8 +127,8 @@ titlesStart(2) = ENDT
 'Get the days between the dates
 Dim dateIntervals(2) As Integer
 dateIntervals(0) = 0
-dateIntervals(1) = BusinessDaysUntil(CDate(Dates(0)), DateAdd("d", -17, CDate(Dates(1))))
-dateIntervals(2) = BusinessDaysUntil(CDate(Dates(0)), DateAdd("d", -17, CDate(Dates(1)))) + BusinessDaysUntil(CDate(Dates(1)), CDate(Dates(2))) - 1
+dateIntervals(1) = BusinessDaysUntil(CDate(dts(0)), DateAdd("d", -17, CDate(dts(1))))
+dateIntervals(2) = BusinessDaysUntil(CDate(dts(0)), DateAdd("d", -17, CDate(dts(1)))) + BusinessDaysUntil(CDate(dts(1)), CDate(dts(2))) - 1
 
 
 'Set the format of the whole worksheet
@@ -139,7 +139,7 @@ sheet.Range("A:A").EntireColumn.EntireRow.RowHeight = 30
 'Set the titles row its format
 sheet.Range("A1").value = "Wochentage"
 sheet.Range("B1").value = "Datum"
-sheet.Range("I1").value = getDateS(Dates(0)) & "~" & getDateS(Dates(1)) & "~" & getDateS(Dates(2))
+sheet.Range("I1").value = GetDateS(dts(0)) & "~" & GetDateS(dts(1)) & "~" & GetDateS(dts(2))
 
 Dim i As Integer
 
@@ -164,8 +164,8 @@ sheet.Range("B:B").NumberFormat = "dd-MM-yyyy"
 
 For i = 0 To 2 Step 1
     'Set the first three date and weekday
-    sheet.Cells(dateIntervals(i) + 3 + i, 1).value = DecimalGetWeekdayAsString(weekday(Dates(i), vbMonday))
-    sheet.Cells(dateIntervals(i) + 3 + i, 2).value = Dates(i)
+    sheet.Cells(dateIntervals(i) + 3 + i, 1).value = DecimalGetWeekdayAsString(weekday(dts(i), vbMonday))
+    sheet.Cells(dateIntervals(i) + 3 + i, 2).value = dts(i)
     
     If i < 2 Then
         'Set the title lines and its Format (Anfang d. Abschnitts etc. )
@@ -182,8 +182,8 @@ For i = 0 To 2 Step 1
 Next i
 
 'Set the last two lines
-sheet.Cells(dateIntervals(2) + 3 + 1, 1).value = DecimalGetWeekdayAsString(weekday(Dates(2), vbMonday))
-sheet.Cells(dateIntervals(2) + 3 + 1, 2).value = Dates(2)
+sheet.Cells(dateIntervals(2) + 3 + 1, 1).value = DecimalGetWeekdayAsString(weekday(dts(2), vbMonday))
+sheet.Cells(dateIntervals(2) + 3 + 1, 2).value = dts(2)
 
 sheet.Cells(dateIntervals(2) + 3 + 2, 1).value = ""
 sheet.Cells(dateIntervals(2) + 3 + 2, 2).value = titlesStart(2)

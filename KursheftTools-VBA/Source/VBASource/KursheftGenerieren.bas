@@ -6,7 +6,7 @@ Attribute VB_Name = "KursheftGenerieren"
 ' Copyright 2020 (c)
 '
 ' ----------------------------------------
-'Version 1.0.2.0
+'Version 1.0.2.1
 
 Option Explicit
 
@@ -23,7 +23,7 @@ Public DialogResult As Boolean
 '''<summary>The path where the logo is stored
 '''         Leave this string as an empty string ("") to not show the logo
 '''</summary>
-Public Const LogoPath As String = ""
+Public Const logoPath As String = ""
 
 
 
@@ -70,11 +70,11 @@ splitedStringDate = Split(dtsStr, "~")
 'Test the validity of each date
 index = 0
 For Each cache In splitedStringDate
-    If Not dateIsValid(CStr(cache)) Then
+    If Not DateIsValid(CStr(cache)) Then
         Call MsgBox("Die Bemerkungsbogen ist beschaedigt oder existiert nicht. Gehen Sie auf dem Sheet und versuchen Sie nochmal", vbOKOnly, "Error")
         Exit Sub
     Else
-        datePeriods(index) = convertStringToDate(CStr(cache))
+        datePeriods(index) = ConvertStringToDate(CStr(cache))
     End If
     index = index + 1
 Next cache
@@ -91,7 +91,7 @@ If DialogResult Then
     Dim csvSheetName As String
     'Set the name with the current system time
     'sothat it won't be the same name as the possible previous imported sheet
-    csvSheetName = "courseListCSV" & format(Now, "MMddhhnnss")
+    csvSheetName = "courseListCSV" & Format(Now, "MMddhhnnss")
     
     'Load the course list (.csv) into excel and set the sheet to not visible
     'If success, then
@@ -141,7 +141,7 @@ If DialogResult Then
         
         'Initizlize the template sheet for exporting the plans
         Dim exportingSheet As Excel.Worksheet
-        Set exportingSheet = PresetExportSheet(datePeriods, LogoPath)
+        Set exportingSheet = PresetExportSheet(datePeriods, logoPath)
         
         
         'For loop variables
@@ -157,9 +157,9 @@ If DialogResult Then
                             'If the current course number and so as the same class is also for this line
                         
                             'Then If the weekday is not added, add it to the array
-                            If Not ((dts(GetArrayLength(dts) - 1)) = getNearestDateForWeekday(courseListS.Cells(i, 6), datePeriods(0))) Then
+                            If Not ((dts(GetArrayLength(dts) - 1)) = GetNearestDateForWeekday(courseListS.Cells(i, 6), datePeriods(0))) Then
                                 ReDim Preserve dts(GetArrayLength(dts))
-                                dts(GetArrayLength(dts) - 1) = getNearestDateForWeekday(courseListS.Cells(i, 6), datePeriods(0))
+                                dts(GetArrayLength(dts) - 1) = GetNearestDateForWeekday(courseListS.Cells(i, 6), datePeriods(0))
                                 ReDim Preserve isRegular(GetArrayLength(isRegular))
                                 
                                 'Check the hour if it is the 8th or 9th
@@ -187,7 +187,7 @@ If DialogResult Then
                             currentCourseName = courseListS.Cells(i, 4).value
                 
                             ReDim dts(0)
-                            dts(0) = getNearestDateForWeekday(courseListS.Cells(i, 6), datePeriods(0))
+                            dts(0) = GetNearestDateForWeekday(courseListS.Cells(i, 6), datePeriods(0))
                             ReDim isRegular(0)
                             'Check the hour if it is the 8th or 9th
                             If courseListS.Cells(i, 7).text = "8" Then
@@ -221,23 +221,23 @@ If DialogResult Then
                             For j = 3 To NoteboardRows Step 1
                             
                                 lineDate = CStr(noteBoard.Cells(j, 2).value)
-                        
-                                'If on even weeks but the current date is odd
-                                If isRegular(k) = "g" And Not isEvenWeek(CDate(sortedDts(k))) Then
-                                    'don't process this date
-                                    'If on odd weeks but the current date is even
-                                ElseIf isRegular(k) = "u" And isEvenWeek(CDate(sortedDts(k))) Then
-                                    'don't process this date
-                                'Else when it is on the right week
+                                
+                                'Add 14 days for the dates because of the holiday
+                                If lineDate = "Anfang d. 2. Abschnitts" Then
+                                    Dim c As Byte
+                                    For c = 0 To GetArrayLength(sortedDts) - 1 Step 1
+                                        sortedDts(c) = DateAdd("ww", 2, sortedDts(c))
+                                    Next c
+                                ElseIf lineDate = "Ende des Schulhalbjahres" Or lineDate = "" Then
+                                    'Do nothing for the title line
                                 Else
-                                    'Add 14 days for the dates because of the holiday
-                                    If lineDate = "Anfang d. 2. Abschnitts" Then
-                                        Dim c As Byte
-                                        For c = 0 To GetArrayLength(sortedDts) - 1 Step 1
-                                            sortedDts(c) = DateAdd("ww", 2, sortedDts(c))
-                                        Next c
-                                    ElseIf lineDate = "Ende des Schulhalbjahres" Or lineDate = "" Then
-                                        'Jump the title lines
+                                    'If on even weeks but the current date is odd
+                                    If isRegular(k) = "g" And Not IsEvenWeek(CDate(sortedDts(k))) Then
+                                        'don't process this date
+                                        'If on odd weeks but the current date is even
+                                    ElseIf isRegular(k) = "u" And IsEvenWeek(CDate(sortedDts(k))) Then
+                                        'don't process this date
+                                    'Else when it is on the right week
                                     Else
                                         'if the date are the same
                                         If CDate(sortedDts(k)) = DateValue(lineDate) Then
@@ -558,7 +558,7 @@ End Function
 '''<param name="dts">An Array with 3 date object represents the start of the year, of the first period and the end of the year</param>
 '''<param name="LogoPath" Optional=True>The Path of the logo image, if not given, then the pdf data will not have any logo on the left top edge</param>
 '''<return>An excel worksheet object represents the generated preset sheet</return>
-Private Function PresetExportSheet(dts, Optional LogoPath As String = "") As Excel.Worksheet
+Private Function PresetExportSheet(dts, Optional logoPath As String = "") As Excel.Worksheet
 
 Dim ae
 ae = ChrW(&HE4)
@@ -614,11 +614,11 @@ sheet.Range("F:F").ColumnWidth = 27.5
 
 'Set the logo picture
 'If the logo path is given
-If Not LogoPath = "" Then
+If Not logoPath = "" Then
     With sheet.Range("A1:B1")
         Dim img As Excel.Shape
         Set img = ActiveSheet.Shapes.AddShape(msoShapeRectangle, .Left, .Top, .Width - 10, .Height)
-        img.Fill.UserPicture LogoPath
+        img.Fill.UserPicture logoPath
         With img
             .LockAspectRatio = msoTrue
             .Rotation = 0#
@@ -633,16 +633,16 @@ With sheet.Range("F1")
     .HorizontalAlignment = Excel.xlRight
     .VerticalAlignment = Excel.xlTop
     .MergeCells = True
-    .value = GetSchoolYear(startDt) & Chr(10) & Chr(13) & "Stand: " & format(Now, "dd-MM-yyyy")
+    .value = GetSchoolYear(startDt) & Chr(10) & Chr(13) & "Stand: " & Format(Now, "dd-MM-yyyy")
     .Font.Size = 10
     .Font.Color = RGB(120, 120, 120)
 End With
 
 'Set the periods
 sheet.Range("E41").value = "1. Kursabschnitt: "
-sheet.Range("F41").value = format(dts(0), "dd.MM.yyyy") & " - " & format(DateAdd("d", -17, dts(1)), "dd.MM.yyyy")
+sheet.Range("F41").value = Format(dts(0), "dd.MM.yyyy") & " - " & Format(DateAdd("d", -17, dts(1)), "dd.MM.yyyy")
 sheet.Range("E42").value = "2. Kursabschnitt: "
-sheet.Range("F42").value = format(dts(1), "dd.MM.yyyy") & " - " & format(dts(2), "dd.MM.yyyy")
+sheet.Range("F42").value = Format(dts(1), "dd.MM.yyyy") & " - " & Format(dts(2), "dd.MM.yyyy")
 
 'Set the foot note
 With sheet.Range("E43:F55")
@@ -659,27 +659,3 @@ Application.ScreenUpdating = True
 
 End Function
 
-
-
-'------Utils-----------------------
-
-'''<summary>Get the Length of an array</summary>
-'''<param name="ary">As Variant: the array</param>
-'''<return>The length of that array as Integer</return>
-Public Function GetArrayLength(ByVal ary) As Integer
-
-GetArrayLength = UBound(ary) - LBound(ary) + 1
-
-End Function
-
-'''<summary>Indicate whether the array is allocated</summary>
-'''<param name="vValue">As Variant: the array</param>
-'''<return>A boolean value represents whether the given array is allocated or not</return>
-Public Function IsDimensioned(vValue As Variant) As Boolean
-    On Error Resume Next
-    If Not IsArray(vValue) Then Exit Function
-    Dim i As Integer
-    i = UBound(vValue)
-    IsDimensioned = Err.Number = 0
-    Err.Clear
-End Function

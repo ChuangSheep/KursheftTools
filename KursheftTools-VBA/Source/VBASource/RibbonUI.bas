@@ -6,7 +6,7 @@ Attribute VB_Name = "RibbonUI"
 ' Copyright 2020 (c)
 '
 ' ----------------------------------------
-'Version 1.0.2.0
+'Version 1.0.2.1
 
 
 Option Explicit

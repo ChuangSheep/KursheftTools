@@ -64,7 +64,7 @@ End Function
 '''<return>Retruen the date of this day as string. </return>
 Public Function GetDate() As String
 
-GetDate = DateGetWeekdayAsString(Day, True) & "  " & format(Day, "dd-MM-yyyy")
+GetDate = DateGetWeekdayAsString(Day, True) & "  " & Format(Day, "dd-MM-yyyy")
 
 End Function
 
@@ -93,7 +93,7 @@ Public Function ToString() As String
 
 Dim cache As String
 
-cache = DateGetWeekdayAsString(Day, True) & "    " & format(Day, "dd-MM-yyyy") & "    "
+cache = DateGetWeekdayAsString(Day, True) & "    " & Format(Day, "dd-MM-yyyy") & "    "
 
 If IsDimensioned(Notes) Then
     Dim nt

@@ -24,6 +24,7 @@ Option Explicit
 '''<summary>The callback function for the button "Aufheben"</summary>
 Private Sub BtnCancel_Click()
 
+DialogResult1 = False
 Unload FormForCreatingBoard
 
 End Sub
@@ -46,7 +47,7 @@ Dim exiting As Boolean
 'change the background color of that textbox and exit
 Dim i As Integer
 For i = 0 To 2 Step 1
-    If Not dateIsValid(datesFromTB(i)) Then
+    If Not DateIsValid(datesFromTB(i)) Then
         TextBoxes(i).BackColor = RGB(255, 192, 192)
         exiting = True
     Else
@@ -80,7 +81,7 @@ End If
 
 If Not exiting Then
     'pass the parameter to the main sub
-    Dates = Array(convertStringToDate(datesFromTB(0)), convertStringToDate(datesFromTB(1)), convertStringToDate(datesFromTB(2)))
+    dates = Array(ConvertStringToDate(datesFromTB(0)), ConvertStringToDate(datesFromTB(1)), ConvertStringToDate(datesFromTB(2)))
 
     'close the Form
     Unload FormForCreatingBoard
@@ -92,15 +93,3 @@ End If
 
 End Sub
 
-'-----------Private Functions-----------------
-
-
-
-'''<summary>Get the Length of an array</summary>
-'''<param name="ary">As Variant: the array</param>
-'''<return>The length of that array in Integer</return>
-Private Function GetArrayLength(ByVal ary) As Integer
-
-GetArrayLength = UBound(ary) - LBound(ary) + 1
-
-End Function

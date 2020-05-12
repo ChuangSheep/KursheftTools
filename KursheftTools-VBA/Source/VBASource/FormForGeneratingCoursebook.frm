@@ -18,11 +18,11 @@ Option Explicit
 '---------Form Callback Functions--------------
 
 'When the button "Durchsuchen" for the course list is clicked
-Private Sub btnCourseListSearch_Click()
+Private Sub BtnCourseListSearch_Click()
 
 'The Path contains also the file name
 Dim path As String
-path = getFilePath("Kursliste", "*.csv")
+path = GetFilePath("Kursliste", "*.csv")
 
 If path <> "" Then
     courseListFrom.text = path
@@ -31,10 +31,10 @@ End If
 End Sub
 
 'When the button "Durchsuchen" for the stored place for the Kursheft is clicked
-Private Sub btnStoredInSearch_Click()
+Private Sub BtnStoredInSearch_Click()
 
 Dim path As String
-path = getFolderPath()
+path = GetFolderPath()
 
 If path <> "" Then
     storedIn.text = path
@@ -65,7 +65,7 @@ grade.BackColor = WHITECOLOR
 Dim allRight As Boolean
 allRight = True
 
-allRight = pathExists(courseListFrom.text) And pathExists(storedIn.text)
+allRight = PathExists(courseListFrom.text) And PathExists(storedIn.text)
 
 'Split the user inputed grades into an array of string
 Dim gradesArr As Variant
@@ -79,7 +79,7 @@ End If
 
 Dim s
 For Each s In gradesArr
-    If Not itemExistsInArr(GRADESC, CStr(s)) Then
+    If Not ItemExistsInArr(GRADESC, CStr(s)) Then
         allRight = False
         grade.BackColor = REDCOLOR
         Exit For
@@ -104,10 +104,10 @@ Else
     KursheftGenerieren.DialogResult = False
 
     'Find the wrong path and mark it red
-    If Not pathExists(courseListFrom.text) Then
+    If Not PathExists(courseListFrom.text) Then
         courseListFrom.BackColor = REDCOLOR
     End If
-    If Not pathExists(storedIn.text) Then
+    If Not PathExists(storedIn.text) Then
         storedIn.BackColor = REDCOLOR
     End If
 End If
@@ -131,7 +131,7 @@ End Sub
 '''<param name="filterType>The type of the file that needed to be selected</param>
 '''<return>A string Value represents the full path of the selected file,
 '''     if user canceled, then return a empty string</return>
-Private Function getFilePath(filterName As String, filterType As String) As String
+Private Function GetFilePath(filterName As String, filterType As String) As String
 
 Dim filePath As String
 Dim fileExplorer As FileDialog
@@ -150,13 +150,13 @@ With fileExplorer
     End If
 End With
 
-getFilePath = filePath
+GetFilePath = filePath
 End Function
 
 '''<summary>Open a dialog window asks the user to select a folder</summary>
 '''<return>A string Value represents the full path of the selected file,
 '''     if user canceled, then return a empty string</return>
-Private Function getFolderPath() As String
+Private Function GetFolderPath() As String
 
 Dim folderPath As String
 Dim folderExplorer As FileDialog
@@ -170,31 +170,22 @@ With folderExplorer
     End If
 End With
 
-getFolderPath = folderPath
+GetFolderPath = folderPath
 
 End Function
 
 '''<summary>Test if the given path exists</summary>
 '''<param name="path">The full path that needs to be tested</param>
 '''<return>A boolean Value represents whether the path exists or not</return>
-Private Function pathExists(path As String) As Boolean
+Private Function PathExists(path As String) As Boolean
 
 If path = "" Then
-    pathExists = False
+    PathExists = False
     Exit Function
 End If
 
 'If the return of the dir function is not a null string, then the path exists
-pathExists = Not (Dir(path, vbDirectory) = "")
-
-End Function
-
-'''<summary>Get the Length of an array</summary>
-'''<param name="ary">As Variant: the array</param>
-'''<return>The length of the given array in Integer</return>
-Private Function GetArrayLength(ByVal ary) As Integer
-
-GetArrayLength = UBound(ary) - LBound(ary) + 1
+PathExists = Not (Dir(path, vbDirectory) = "")
 
 End Function
 
@@ -204,7 +195,7 @@ End Function
 '''<param name="strSearch">The string</param>
 '''<return>A boolean value represents whether that given string exists in the given array or not</return>
 'See Also: https://docs.microsoft.com/en-us/previous-versions/office/developer/office2000/aa164525(v=office.10)
-Function itemExistsInArr(astrItems(), _
+Private Function ItemExistsInArr(astrItems, _
                           strSearch As String) As Boolean
                   
 
@@ -223,7 +214,7 @@ lngLower = LBound(astrFilter)
    
 'If nothing fit to the originary filter
 If lngUpper < lngLower Then
-    itemExistsInArr = False
+    ItemExistsInArr = False
     Exit Function
 End If
    
@@ -235,11 +226,11 @@ For lngIndex = lngLower To lngUpper
     ' Check that element matches search string exactly.
     If astrFilter(lngIndex) = strSearch Then
         ' Store elements that match exactly in another array.
-        itemExistsInArr = True
+        ItemExistsInArr = True
         Exit Function
     End If
 Next lngIndex
 
-itemExistsInArr = False
+ItemExistsInArr = False
 
 End Function
