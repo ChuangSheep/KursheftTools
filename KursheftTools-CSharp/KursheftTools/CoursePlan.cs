@@ -71,7 +71,7 @@ namespace KursheftTools
         /// <param name="logoFilePath">A optional parameter represents where the logo is stored. 
         ///                     If this is not given, then the logo will be replaced by the words "Sollstuden für Kurs"</param>
         /// <returns>A boolean value represents whether the export is successful or not.</returns>
-        public bool ExportAsPDF(DateTime[] periods, string storedPath,  string logoFilePath = "default")
+        public bool ExportAsPDF(DateTime[] periods, string storedPath, string logoFilePath = "default")
         {
             string title = $"{this._courseName}-{this._teacher}-{this._className}";
             PdfDocument document = new PdfDocument();
@@ -235,10 +235,10 @@ namespace KursheftTools
             }
 
             rect = new XRect(smallRectStartCo[0].X, smallRectStartCo[0].Y + Formats.GetPixel(1), SMALLNOTERECTWIDTH + SMALLDATERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[0].Y + SMALLRECTHEIGHT / 2));
-            xGps.DrawString($"1. Kursabschnitt: {periods[0]:dd-MM-yyyy} - {periods[1].AddDays(-17):dd-MM-yyyy}", regularFont, XBrushes.Black, rect, XStringFormats.TopLeft);
+            xGps.DrawString($"1. Kursabschnitt: {periods[0]:dd.MM.yyyy} - {periods[1]:dd.MM.yyyy}", regularFont, XBrushes.Black, rect, XStringFormats.TopLeft);
             smallRectStartCo[0].Y += SMALLRECTHEIGHT / 2 + Formats.GetPixel(2);
             rect = new XRect(smallRectStartCo[0].X, smallRectStartCo[0].Y + Formats.GetPixel(1), SMALLNOTERECTWIDTH + SMALLDATERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[0].Y + SMALLRECTHEIGHT / 2));
-            xGps.DrawString($"2. Kursabschnitt: {periods[1]:dd-MM-yyyy} - {periods[2]:dd-MM-yyyy}", regularFont, XBrushes.Black, rect, XStringFormats.TopLeft);
+            xGps.DrawString($"2. Kursabschnitt: {periods[2]:dd.MM.yyyy} - {periods[3]:dd.MM.yyyy}", regularFont, XBrushes.Black, rect, XStringFormats.TopLeft);
             #endregion
 
             #region Clean Up
@@ -247,7 +247,7 @@ namespace KursheftTools
             foreach (char c in title.ToCharArray())
             {
                 //Test if there is illegal character in the title
-                if (!((c >= 97 && c <= 123) || (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || 
+                if (!((c >= 97 && c <= 123) || (c >= 48 && c <= 57) || (c >= 65 && c <= 90) ||
                         c == 45 || c == 46 || c == 64 || c == 95 || c == 32 || c == 'ä' || c == 'ö' || c == 'ü' ||
                         c == 'ß' || c == 'Ä' || c == 'Ö' || c == 'Ü'))
                 {
@@ -259,7 +259,7 @@ namespace KursheftTools
             document.Save($"{storedPath}\\{title}.pdf");
             document.Close();
             document.Dispose();
-            GC.Collect();
+            //GC.Collect();
 
             Debug.WriteLine($"{storedPath}\\{title}.pdf ist exportiert.");
             #endregion
@@ -274,7 +274,7 @@ namespace KursheftTools
         /// <param name="isRegular">An array of string represents this course appears every week or every two weeks. 
         ///                 "" represents regular, "g" represents only on even weeks and "u" only on odd weeks. 
         ///                 The order of this array should be the same as the order of the array "dates". </param>
-        public void ReadNoteBoard(Excel.Worksheet noteBoard, DateTime[] dates, string[] isRegular)
+        public void ReadNoteBoard(Excel.Worksheet noteBoard, DateTime[] dates, string[] isRegular, DateTime[,] holidays)
         {
             DateTimeCalcUtils.SortDate(ref dates, ref isRegular);
             //Initialize the counter
@@ -283,19 +283,55 @@ namespace KursheftTools
             for (int i = 3; i < noteBoard.UsedRange.Rows.Count - 1; i++)
             {
                 //Jump the title lines
-                if (((Excel.Range)noteBoard.Cells[i, 2]).Text == "Anfang d. 2. Abschnitts")
-                {
-                    //Jump the holiday
-                    for (int n = 0; n < dates.Length; n++)
-                    {
-                        dates[n] = dates[n].AddDays(14);
-                    }
-                    //To the next row of the note board
-                    continue;
-                }
-                //Jump the title lines
-                else if (((Excel.Range)noteBoard.Cells[i, 2]).Text == "Ende des Schuljahres" || ((Excel.Range)noteBoard.Cells[i, 2]).Text == "") continue;
+                if (((Excel.Range)noteBoard.Cells[i, 2]).Text == "Anfang d. 2. Abschnitts" || ((Excel.Range)noteBoard.Cells[i, 2]).Text == "Ende des Schuljahres" || ((Excel.Range)noteBoard.Cells[i, 2]).Text == "") continue;
 
+                // If the dates is in holiday, jump it
+                // Also add a daynote that says holiday until
+                // Use date of the holiday begin
+                bool inFirstHoliday = DateTime.Compare(dates[k], holidays[0, 0]) >= 0 && DateTime.Compare(dates[k], holidays[0, 1]) <= 0;
+                bool inSecondHoliday = DateTime.Compare(dates[k], holidays[1, 0]) >= 0 && DateTime.Compare(dates[k], holidays[1, 1]) <= 0;
+                if (inFirstHoliday || inSecondHoliday)
+                {
+                    // Jump the holidays
+                    // Not use +14 days because not every holiday has 14 days
+                    for (int j = 0; j < dates.Length; j++)
+                    {
+                        bool nowInFirstHoliday = DateTime.Compare(dates[j], holidays[0, 0]) >= 0 && DateTime.Compare(dates[j], holidays[0, 1]) <= 0;
+                        bool nowInSecondHoliday = DateTime.Compare(dates[j], holidays[1, 0]) >= 0 && DateTime.Compare(dates[j], holidays[1, 1]) <= 0;
+                        while (nowInFirstHoliday || nowInSecondHoliday)
+                        {
+                            dates[j] = dates[j].AddDays(7);
+                            nowInFirstHoliday = DateTime.Compare(dates[j], holidays[0, 0]) >= 0 && DateTime.Compare(dates[j], holidays[0, 1]) <= 0;
+                            nowInSecondHoliday = DateTime.Compare(dates[j], holidays[1, 0]) >= 0 && DateTime.Compare(dates[j], holidays[1, 1]) <= 0;
+                        }
+                    }
+
+                    // Check the k index, if not correct, change it 
+                    for (int j = 0; j < dates.Length; j++)
+                    {
+                        if (DateTime.Compare(dates[k], dates[j]) > 0)
+                        {
+                            k = j; 
+                            j = 0;
+                        }
+                    }
+
+                    // Add note about the holiday
+                    if (inFirstHoliday)
+                    {
+                        Daynote holidayUntil = new Daynote(holidays[0, 0]);
+                        holidayUntil.AddNote($"bis {holidays[0, 1]:dd.MM.yyyy} {DateTimeCalcUtils.GetHolidayType(holidays[0, 0])}");
+                        this.AddLine(holidayUntil);
+                    }
+                    else if (inSecondHoliday)
+                    {
+                        Daynote holidayUntil = new Daynote(holidays[1, 0]);
+                        holidayUntil.AddNote($"bis {holidays[1, 1]:dd.MM.yyyy} {DateTimeCalcUtils.GetHolidayType(holidays[1, 0])}");
+                        this.AddLine(holidayUntil);
+                    }
+                }
+
+                // Get the date of the current line of the note board
                 DateTime lineDate = ((Excel.Range)noteBoard.Cells[i, 2]).Value;
 
                 //If the date fits
@@ -318,7 +354,7 @@ namespace KursheftTools
                             if (currentNote != null)
                             {
                                 //If the grade fits to the current course
-                                if (currentLineGrade == this._className || currentLineGrade == this.GetGrade() || currentLineGrade == null)
+                                if (currentLineGrade == this._className || currentLineGrade == this.GetGrade() || string.IsNullOrEmpty(currentLineGrade))
                                 {
                                     currentDaynotes.AddNote(currentNote);
                                 }

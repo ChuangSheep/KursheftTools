@@ -63,7 +63,7 @@ namespace KursheftTools
             {
                 Multiselect = false,
                 RestoreDirectory = true,
-                Filter = "Kursliste (*.csv)|*.csv"
+                Filter = "Kursliste (*.csv, *.txt)|*.csv;*.txt"
             })
             {
 
@@ -95,7 +95,7 @@ namespace KursheftTools
                 MessageBox.Show("Der Kursplan existiert nicht.\r\nImportieren Sie zuerst den Kursplan und versuchen nochmal.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
-            string[] datesStrings = new string[2];
+            string[] datesStrings = new string[4];
             //Test if the note board is not right
             try
             {
@@ -103,7 +103,7 @@ namespace KursheftTools
                 datesStrings = datesCell.Split('~');
 
                 //If the length of the datesString does not fit
-                if (datesStrings.Length != 3)
+                if (datesStrings.Length != 4)
                 {
                     allRight = false;
                     MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existert nicht\r\nSind Sie vielleicht auf falscher Seite?", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -122,16 +122,39 @@ namespace KursheftTools
                 allRight = false;
             }
 
+
+            DateTime[,] holidays = new DateTime[2, 2];
+            try
+            {
+                var holiday1 = noteBoard.get_Range("I2", Type.Missing).Value2;
+                var holiday2 = noteBoard.get_Range("I3", Type.Missing).Value2;
+
+                holidays[0, 0] = DateTime.ParseExact(holiday1.Split('~')[0], "dd.MM.yyyy", new CultureInfo("de-DE"));
+                holidays[0, 1] = DateTime.ParseExact(holiday1.Split('~')[1], "dd.MM.yyyy", new CultureInfo("de-DE"));
+                holidays[1, 0] = DateTime.ParseExact(holiday2.Split('~')[0], "dd.MM.yyyy", new CultureInfo("de-DE"));
+                holidays[1, 1] = DateTime.ParseExact(holiday2.Split('~')[1], "dd.MM.yyyy", new CultureInfo("de-DE"));
+            }
+            catch (FormatException)
+            {
+                allRight = false;
+                MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existert nicht\r\nSind Sie vielleicht auf falscher Seite?", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (RuntimeBinderException)
+            {
+                MessageBox.Show("Die Bemerkungsbogen ist beschädigt oder existert nicht\r\nSind Sie vielleicht auf falscher Seite?", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                allRight = false;
+            }
+
             if (allRight)
             {
-                DateTime[] periods = new DateTime[3];
+                DateTime[] periods = new DateTime[4];
                 
                 foreach (string s in datesStrings)
                 {
-                    periods[Array.IndexOf(datesStrings, s)] = DateTime.ParseExact(s, "dd-MM-yyyy", new CultureInfo("de-DE"));
+                    periods[Array.IndexOf(datesStrings, s)] = DateTime.ParseExact(s, "dd.MM.yyyy", new CultureInfo("de-DE"));
                 }
 
-                using (FormForGeneratingPlans form = new FormForGeneratingPlans(noteBoard, periods, _coursePlan))
+                using (FormForGeneratingPlans form = new FormForGeneratingPlans(noteBoard, periods, _coursePlan, holidays))
                     form.ShowDialog();
             }
 

@@ -26,6 +26,7 @@ namespace KursheftTools
         private string[] _PDFClasses;
         private readonly DateTime[] _periods;
         private readonly DataTable _coursePlan;
+        private readonly DateTime[,] _holidays;
         //Change if there is more grades
         //ex. "10" for the Realschule und Hauptschule
         private static readonly string[] VALIDGRADES = new string[8] { "05", "06", "07", "08", "09", "EF", "Q1", "Q2" };
@@ -34,17 +35,18 @@ namespace KursheftTools
         /// Class constructor
         /// </summary>
         /// <param name="sheet">A excel worksheet object represents the note board. </param>
-        /// <param name="prds">An array of 3 DateTime objects represents the start of year, 
+        /// <param name="prds">An array of 4 DateTime objects represents the start of first period, end of the first period
         ///             the start of the second period and the end of the half year. </param>
         /// <param name="coursePlan">A datatable object contains the full course list. </param>
-        public FormForGeneratingPlans(Excel.Worksheet sheet, DateTime[] prds, DataTable coursePlan)
+        public FormForGeneratingPlans(Excel.Worksheet sheet, DateTime[] prds, DataTable coursePlan, DateTime[,] holidays)
         {
             //Initialize the class menbers
-            if (prds.Length == 3) _periods = prds;
-            else throw new ArgumentException("The augument \"prds\" does not have 3 items", nameof(prds));
+            if (prds.Length == 4) _periods = prds;
+            else throw new ArgumentException("The augument \"prds\" does not have 4 items", nameof(prds));
 
             _noteBoard = sheet;
             _coursePlan = coursePlan;
+            _holidays = holidays;
             
             InitializeComponent();
         }
@@ -156,7 +158,6 @@ namespace KursheftTools
                         }
                         if (s == "EF")
                         {
-                            //I have not thought that EF has a f class
                             grds.Add(s + "f");
                         }
                     }
@@ -302,7 +303,7 @@ namespace KursheftTools
                 for (int i = 0; i < plans.Count; i++)
                 {
                     CoursePlan currentCoursePlan = plans[i];
-                    currentCoursePlan.ReadNoteBoard(_noteBoard, dates[i], isRegular[i]);
+                    currentCoursePlan.ReadNoteBoard(_noteBoard, dates[i], isRegular[i], _holidays);
                     //After all the note board processed
                     //Export the current course plan
                     _ = currentCoursePlan.ExportAsPDF(_periods, _PDFStorePath, !string.IsNullOrEmpty(_logoStorePath) ? _logoStorePath : "default");

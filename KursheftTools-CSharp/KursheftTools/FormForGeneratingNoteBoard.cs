@@ -22,61 +22,70 @@ namespace KursheftTools
         /// </summary>
         private void btnAccept_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.None;
+            DialogResult = DialogResult.Yes;
             Color RED = Color.FromArgb(255, 192, 192);
-            DateTime[] periods = new DateTime[3];
-            //Check the validity of the given dates
-            //Store the text boxes into an array called textboxs
-            TextBox[] textboxes = new TextBox[3] { StartPeriod1, StartPeriod2, EndHY };
+            Color WHITE = Color.White;
+            DateTime[] periods = new DateTime[4];
+            DateTime[,] holidays = new DateTime[2, 2];
+            TextBox[] textboxes = new TextBox[4] { StartPeriod1, EndPeriod1, StartPeriod2, EndHY };
+            TextBox[] textBoxHolidays = new TextBox[2] { Holiday1, Holiday2 };
 
-            bool allRight = true;
             foreach (TextBox tbx in textboxes)
             {
-                tbx.BackColor = Color.White;
+
+                // Reset the color
+                tbx.BackColor = WHITE;
+
+                // Weekends are not allowed as start or end of a Kursabschnitt
                 try
                 {
-                    periods[Array.IndexOf(textboxes, tbx)] = DateTime.ParseExact(tbx.Text, "dd-MM-yyyy", DEUTSCHCULT);
+                    periods[Array.IndexOf(textboxes, tbx)] = DateTime.ParseExact(tbx.Text, "dd.MM.yyyy", DEUTSCHCULT);
                     if (DateTimeCalcUtils.GetWeekday(periods[Array.IndexOf(textboxes, tbx)]) == "Sa" ||
-                        DateTimeCalcUtils.GetWeekday(periods[Array.IndexOf(textboxes, tbx)]) == "So") throw new FormatException("The dates could not be on the weekends");
+                        DateTimeCalcUtils.GetWeekday(periods[Array.IndexOf(textboxes, tbx)]) == "So")
+                    {
+                        DialogResult = DialogResult.None;
+                        tbx.BackColor = RED;
+                    }
                 }
                 catch (FormatException)
                 {
-                    allRight = false;
+                    DialogResult = DialogResult.None;
+                    periods[Array.IndexOf(textboxes, tbx)] = new DateTime();
                     tbx.BackColor = RED;
                 }
+            }
 
-                catch (Exception err)
+            for (byte i = 0; i < textBoxHolidays.Length; i++)
+            {
+                string[] prds = textBoxHolidays[i].Text.Split('-');
+                try
                 {
-                    Console.WriteLine("Error in \'FormForGeneratingSheet2.cs\'");
-                    Console.WriteLine($"Generic Exception Handler: {err}");
-                    throw;
+                    holidays[i, 0] = DateTime.ParseExact(prds[0], "dd.MM.yyyy", DEUTSCHCULT);
+                    holidays[i, 1] = DateTime.ParseExact(prds[1], "dd.MM.yyyy", DEUTSCHCULT);
+                }
+                catch (FormatException)
+                {
+                    DialogResult = DialogResult.None;
+                    holidays[i, 0] = new DateTime();
+                    holidays[i, 1] = new DateTime();
+                    textBoxHolidays[i].BackColor = RED;
+                }
+
+            }
+
+            for (byte i = 0; i < textboxes.Length - 1; i++)
+            {
+                if (periods[i + 1] < periods[i])
+                {
+                    DialogResult = DialogResult.None;
                 }
             }
 
-            if (allRight)
+            if (DialogResult == DialogResult.Yes)
             {
-                for (int i = 0; i < 2; i++)
-                {
-                    try
-                    {
-                        //Test if the dates do not fit or the periods are too short
-                        DateTimeCalcUtils.BusinessDaysUntil(periods[i], periods[i + 1].AddDays(-17));
-                    }
-                    catch (ArgumentException)
-                    {
-                        allRight = false;
-                        textboxes[i + 1].BackColor = RED;
-                    }
-
-                }
-            }
-
-            if (allRight)
-            {
-                this.DialogResult = DialogResult.Yes;
                 this.Hide();
-                if (CreateBoard(periods)) MessageBox.Show("Ein leerer Bemerkungsbogen wurde erfolgreich generiert.\r\nAbschnitts: " +
-                    $"{periods[0]:dd-MM-yyyy} ~ {periods[1]:dd-MM-yyyy} ~ {periods[2]:dd-MM-yyyy}", 
+                if (CreateBoard(periods, holidays)) MessageBox.Show("Ein leerer Bemerkungsbogen wurde erfolgreich generiert.\r\nAbschnitts: " +
+                    $"{periods[0]:dd.MM.yyyy} ~ {periods[1]:dd.MM.yyyy} | {periods[2]:dd.MM.yyyy} ~ {periods[3]:dd.MM.yyyy}",
                     "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
             }
@@ -90,7 +99,7 @@ namespace KursheftTools
 
         private void ForForGeneratingNoteBoard_HelpButtonClicked(object sender, CancelEventArgs e)
         {
-            MessageBox.Show("Die Datum soll in dieser Form \'dd-mm-yyyy\' angegeben werden", 
+            MessageBox.Show("Die Datum soll in dieser Form \'dd.mm.yyyy\' angegeben werden",
                 "Hilfe", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -99,9 +108,10 @@ namespace KursheftTools
         /// </summary>
         /// <param name="dates">An array of DateTime objects represents the start of year, of the second period and the end of the half year. </param>
         /// <returns>A boolean value represents whether this operation finished successfully or not</returns>
-        private bool CreateBoard(DateTime[] dates)
+        private bool CreateBoard(DateTime[] dates, DateTime[,] holidays)
         {
-            if (dates.Length != 3) throw new ArgumentException("The augument \"dates\" (array of DateTime) must have 3 items", nameof(dates));
+            if (dates.Length != 4) throw new ArgumentException("The augument \"dates\" (array of DateTime) must have 4 items", nameof(dates));
+            if (holidays.Length != 4) throw new ArgumentException("The augument \"holidays\" (array of DateTime) must have 4 items", nameof(holidays));
 
             //start a new sheet 
             Excel.Worksheet sheet1;
@@ -127,7 +137,9 @@ namespace KursheftTools
             //Titles:
             sheet1.Cells[1, 1] = "Wochentage";
             sheet1.Cells[1, 2] = "Datum";
-            sheet1.Cells[1, 9] = dates[0].ToString("dd-MM-yyyy", DEUTSCHCULT) + "~" + dates[1].ToString("dd-MM-yyyy", DEUTSCHCULT) + "~" + dates[2].ToString("dd-MM-yyyy", DEUTSCHCULT);
+            sheet1.Cells[1, 9] = dates[0].ToString("dd.MM.yyyy", DEUTSCHCULT) + "~" + dates[1].ToString("dd.MM.yyyy", DEUTSCHCULT) + "~" + dates[2].ToString("dd.MM.yyyy", DEUTSCHCULT) + "~" + dates[3].ToString("dd.MM.yyyy", DEUTSCHCULT);
+            sheet1.Cells[2, 9] = $"{holidays[0, 0]:dd.MM.yyyy}~{holidays[0, 1]:dd.MM.yyyy}";
+            sheet1.Cells[3, 9] = $"{holidays[1, 0]:dd.MM.yyyy}~{holidays[1, 1]:dd.MM.yyyy}";
             sheet1.Cells[1, 1].EntireRow.Font.Bold = true;
             sheet1.Cells[1, 1].EntireRow.Font.Size = 14;
 
@@ -136,23 +148,23 @@ namespace KursheftTools
 
 
             #region 1. + 2. column: Weekdays and Dates
-            //Jump the holidays
-            int[] dateLength = new int[3] { 0, DateTimeCalcUtils.BusinessDaysUntil(dates[0], dates[1].AddDays(-17)), DateTimeCalcUtils.BusinessDaysUntil(dates[0], dates[1].AddDays(-17)) + DateTimeCalcUtils.BusinessDaysUntil(dates[1], dates[2]) - 1 };
-            string[] titlesStart = new string[3] { "Anfang d. 1. Abschnitts", "Anfang d. 2. Abschnitts", "Ende des Schulhalbjahres" };
-            sheet1.get_Range("B:B", System.Type.Missing).NumberFormat = "dd-MM-yyyy";  //It MAY cause a problem
+            int[] dateLength = new int[3] { 0, DateTimeCalcUtils.BusinessDaysUntil(dates[0], dates[1]), DateTimeCalcUtils.BusinessDaysUntil(dates[0], dates[1]) + DateTimeCalcUtils.BusinessDaysUntil(dates[2], dates[3]) - 1 };
 
-            for (int i = 0; i < dates.Length; i++)
+            DateTime[] startDates = new DateTime[3] { dates[0], dates[2], dates[3] };
+            string[] titlesStart = new string[3] { "Anfang d. 1. Abschnitts", "Anfang d. 2. Abschnitts", "Ende des Schulhalbjahres" };
+            sheet1.get_Range("B:B", System.Type.Missing).NumberFormat = "dd.MM.yyyy";  //It MAY cause a problem
+
+            for (int i = 0; i < dateLength.Length; i++)
             {
                 tRange = sheet1.Range[sheet1.Cells[dateLength[i] + 3 + i, 1], sheet1.Cells[dateLength[i] + 3 + i, 1]];
-                tRange.Value = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(dates[i].DayOfWeek);
+                tRange.Value = CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(startDates[i].DayOfWeek);
 
 
                 tRange = sheet1.Range[sheet1.Cells[dateLength[i] + 3 + i, 2], sheet1.Cells[dateLength[i] + 3 + i, 2]];
-                tRange.Value = dates[i].Date;
+                tRange.Value = startDates[i].Date;
 
                 if (i < 2)
                 {
-                    //IMPORTANT: We assume that all the three entered dates are WEEKDAYS
                     sheet1.Cells[dateLength[i] + 2 + i, 2] = titlesStart[i];
                     sheet1.Cells[dateLength[i] + 2 + i, 2].EntireRow.Interior.Color = Color.FromArgb(146, 208, 80);
                     ((Excel.Range)sheet1.Range[sheet1.Cells[dateLength[i] + 2 + i, 2], sheet1.Cells[dateLength[i] + 2 + i, 2]]).Font.Size = 14;
@@ -162,9 +174,9 @@ namespace KursheftTools
                     tRange.AutoFill(sheet1.Range[sheet1.Cells[dateLength[i] + 3 + i, 1], sheet1.Cells[dateLength[i + 1] + i + 2, 1]], Excel.XlAutoFillType.xlFillWeekdays);
                 }
             }
-            sheet1.Cells[dateLength[2] + 3 + 1, 1] = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(dates[2].DayOfWeek);
+            sheet1.Cells[dateLength[2] + 3 + 1, 1] = CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(dates[3].DayOfWeek);
             sheet1.Cells[dateLength[2] + 3 + 2, 1] = "";
-            sheet1.Cells[dateLength[2] + 3 + 1, 2] = dates[2].Date;
+            sheet1.Cells[dateLength[2] + 3 + 1, 2] = dates[3].Date;
             sheet1.Cells[dateLength[2] + 3 + 2, 2] = titlesStart[2];
             sheet1.Cells[dateLength[2] + 3 + 2, 2].EntireRow.Interior.Color = Color.FromArgb(146, 208, 80);
             ((Excel.Range)sheet1.Range[sheet1.Cells[dateLength[2] + 3 + 2, 2], sheet1.Cells[dateLength[2] + 3 + 2, 2]]).Font.Size = 14;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Globalization;
+using System.Linq.Expressions;
 
 namespace KursheftTools
 {
@@ -191,6 +192,33 @@ namespace KursheftTools
             businessDays -= fullWeekCount + fullWeekCount;
 
             return businessDays;
+        }
+
+        /// <summary>
+        /// Get the type of the ferien of the given date, ex. Sommerferien
+        /// </summary>
+        /// <param name="date">The date</param>
+        /// <returns>Type of the holiday, ex. Sommerferien</returns>
+        public static string GetHolidayType(DateTime date)
+        {
+            int month = date.Month;
+            if (month >= 2 && month <= 5 )
+            {
+                return "Osterferien";
+            }
+            else if (month >= 11 || month <= 1)
+            {
+                return "Weihnachtsferien";
+            }
+            else if (month >= 6 && month <= 8)
+            {
+                return "Sommerferien";
+            }
+            else if (month >= 9 && month <= 10)
+            {
+                return "Herbstferien";
+            }
+            throw new ArgumentException("Unexpected error has occured in DateTimeCalcUtils.GetHolidayType");
         }
 
     }

@@ -42,7 +42,7 @@ namespace KursheftTools
         /// <returns>A string in "dd-MM-yyyy" format</returns>
         public string GetDateS()
         {
-            return _date.ToString("dd-MM-yyyy", new System.Globalization.CultureInfo("de-DE"));
+            return _date.ToString("dd.MM.yyyy", new System.Globalization.CultureInfo("de-DE"));
         }
 
         /// <summary>
