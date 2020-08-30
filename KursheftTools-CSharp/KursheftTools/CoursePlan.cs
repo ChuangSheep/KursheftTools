@@ -71,61 +71,50 @@ namespace KursheftTools
         /// <param name="logoFilePath">A optional parameter represents where the logo is stored. 
         ///                     If this is not given, then the logo will be replaced by the words "Sollstuden für Kurs"</param>
         /// <returns>A boolean value represents whether the export is successful or not.</returns>
-        public bool ExportAsPDF(DateTime[] periods, string storedPath, string logoFilePath = "default")
+        public bool ExportAsPDF(DateTime[] periods, string storedPath)
         {
-            string title = $"{this._courseName}-{this._teacher}-{this._className}";
+            DateTime dtNow = DateTime.Now;
+            string fileName = $"{this._courseName}-{this._teacher}-{this._className}";
+            string title1 = $"Jahrgangstufe {this._className.Substring(0,2)}.{DateTimeCalcUtils.GetHalfYearAsNumber(dtNow)}    {DateTimeCalcUtils.GetHalfYear(dtNow)}";
+            string title2 = $"Sollstunde für Kurs  {this._courseName}-{this._teacher}";
+            const string columnTitle1 = "Tag    Datum";
+            const string columnTitle2 = "Besonderheit";
+
             PdfDocument document = new PdfDocument();
             PdfPage page = document.AddPage();
             XGraphics xGps = XGraphics.FromPdfPage(page);
 
             #region Preset Format
-            double ROWS = 30;
+            const double ROWS = 60;
             //double SMALLWEEKDAYRECTWIDTH = Formats.getPixel(5);
             double SMALLDATERECTWIDTH = Formats.GetPixel(30);
             double SMALLNOTERECTWIDTH = Formats.GetPixel(55);
-            double SMALLRECTHEIGHT = Formats.GetPixel(7);
-            double TOPHEIGHT = Formats.GetPixel(40);
+            double SMALLRECTHEIGHT = Formats.GetPixel(3.6);
+            double TOPHEIGHT = Formats.GetPixel(28);
             double LEFTBLANK = Formats.GetPixel(10);
             double CENTERBLANK = Formats.GetPixel(20);
             //double RIGHTBLANK = Formats.getPixel(10);
-            double OFFSET = Formats.GetPixel(1.5);
+            double OFFSET = Formats.GetPixel(0.6);
             //IN PIXEL
             XPoint[] smallRectStartCo = new XPoint[4] { new XPoint(), new XPoint(), new XPoint(), new XPoint() };
 
             #endregion
 
             #region Preset Text Format 
-            XFont boldFont = new XFont("Times New Roman", 10, XFontStyle.Bold);
-            XFont regularFont = new XFont("Times New Roman", 10);
-            XFont titleFont = new XFont("Times New Roman", 24, XFontStyle.Bold);
-            XFont subtitleFont = new XFont("Times New Roman", 16, XFontStyle.Bold);
-            XFont smallNoteFont = new XFont("Times New Roman", 8);
+            XFont boldFont = new XFont("Times New Roman", 7.5, XFontStyle.Bold);
+            XFont regularFont = new XFont("Times New Roman", 7.5);
+            XFont titleFont = new XFont("Times New Roman", 14, XFontStyle.Bold);
+            XFont subtitleFont = new XFont("Times New Roman", 10, XFontStyle.Bold);
+            XFont smallNoteFont = new XFont("Times New Roman", 6.5);
             XTextFormatter xtf = new XTextFormatter(xGps);
             XBrush[] brushes = new XBrush[2] { new XSolidBrush(XColor.FromArgb(230, 230, 230)), new XSolidBrush(XColor.FromArgb(210, 210, 210)) };
+            XPen pen = new XPen(XColors.Gray, 0.5);
+            XPen darkPen = new XPen(XColors.Black, 1);
             #endregion
 
-            #region Responsive Design & Error check
-
-            if (this._lines.Count > ROWS * 2)
-            {
-                ROWS *= 1.3;
-                SMALLRECTHEIGHT = Formats.GetPixel(6);
-            }
-            if (this._lines.Count > ROWS * 2)
-            {
-                ROWS *= 1.3;
-                SMALLRECTHEIGHT = Formats.GetPixel(4.5);
-                OFFSET = Formats.GetPixel(1);
-
-                boldFont = new XFont("Times New Roman", 8, XFontStyle.Bold);
-                regularFont = new XFont("Times New Roman", 8);
-            }
-            //Round it to a whole number
-            ROWS = Math.Round(ROWS);
             //If the data is too long or too short
             if (this._lines.Count > ROWS * 2) throw new ArgumentException("the weeklyplan is too long: " + this._lines.Count + " : " + this._courseName + this._className + this._teacher);
             else if (_lines.Count < 3) throw new ArgumentException("the weeklyplan is too short: " + this._lines.Count + " course: " + this._courseName + this._className + this._teacher);
-            #endregion
 
             #region Points
 
@@ -141,33 +130,31 @@ namespace KursheftTools
             #endregion
 
             #region HEAD
-            //Set the Logo
-            if (logoFilePath == "default")
-            {
-                XRect rectSubtitle = new XRect(0, 0, Formats.GetPixel(46), Formats.GetPixel(30));
-                xGps.DrawString("Sollstuden für Kurs", subtitleFont, XBrushes.Gray, rectSubtitle, XStringFormats.TopLeft);
-            }
-            else
-            {
-                XImage lgIcon = XImage.FromFile(logoFilePath);
-                if (lgIcon == null) throw new ArgumentNullException(nameof(logoFilePath), "the stream of this file path is null");
-                xGps.DrawImage(lgIcon, 0, 0, Formats.GetPixel(46), Formats.GetPixel(30));
 
-                XRect rectSubtitle = new XRect(Formats.GetPixel(55), Formats.GetPixel(2), Formats.GetPixel(100), Formats.GetPixel(10));
-                xGps.DrawString("Sollstuden für Kurs", subtitleFont, XBrushes.Gray, rectSubtitle, XStringFormats.TopLeft);
-            }
+            //Set the titles
+            XRect rectTitle = new XRect(Formats.GetPixel(10), Formats.GetPixel(5), Formats.GetPixel(85), Formats.GetPixel(7));
+            xGps.DrawString(title1, titleFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
 
-            //Set the title
-            XRect rectTitle = new XRect(Formats.GetPixel(55), Formats.GetPixel(10), Formats.GetPixel(100), Formats.GetPixel(20));
-            xGps.DrawString(title, titleFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
+            rectTitle = new XRect(Formats.GetPixel(10), Formats.GetPixel(12), Formats.GetPixel(85), Formats.GetPixel(7));
+            xGps.DrawString(title2, titleFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
 
-            //Set the current date and the half year
-            DateTime dtNow = DateTime.Now;
-            XRect rectDate = new XRect(Formats.GetPixel(180), Formats.GetPixel(2), Formats.GetPixel(28), Formats.GetPixel(5));
-            xGps.DrawString($"Stand: {dtNow:dd-MM-yyyy}", regularFont, XBrushes.Gray, rectDate, XStringFormats.TopRight);
+            rectTitle = new XRect(smallRectStartCo[2].X, Formats.GetPixel(5), Formats.GetPixel(85), Formats.GetPixel(7));
+            xGps.DrawString(title1, titleFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
 
-            XRect rectYear = new XRect(Formats.GetPixel(180), Formats.GetPixel(7), Formats.GetPixel(28), Formats.GetPixel(5));
-            xGps.DrawString(DateTimeCalcUtils.GetHalfYear(this._lines[0].GetDate()), boldFont, XBrushes.Gray, rectYear, XStringFormats.TopRight);
+            rectTitle = new XRect(smallRectStartCo[2].X, Formats.GetPixel(12), Formats.GetPixel(85), Formats.GetPixel(7));
+            xGps.DrawString(title2, titleFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
+
+            // column titles
+            rectTitle = new XRect(new XPoint(smallRectStartCo[0].X, smallRectStartCo[0].Y - SMALLRECTHEIGHT - 5), new XPoint(LEFTBLANK + SMALLDATERECTWIDTH, smallRectStartCo[0].Y));
+            xGps.DrawString(columnTitle1, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
+            rectTitle = new XRect(new XPoint(smallRectStartCo[1].X, smallRectStartCo[0].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[1].X + SMALLNOTERECTWIDTH, smallRectStartCo[1].Y));
+            xGps.DrawString(columnTitle2, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
+            
+            rectTitle = new XRect(new XPoint(smallRectStartCo[2].X, smallRectStartCo[2].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[2].X, smallRectStartCo[2].Y));
+            xGps.DrawString(columnTitle1, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
+            rectTitle = new XRect(new XPoint(smallRectStartCo[3].X, smallRectStartCo[2].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[3].Y));
+            xGps.DrawString(columnTitle2, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
+
             #endregion
 
             #region Main Body
@@ -181,70 +168,79 @@ namespace KursheftTools
                 else xGps.DrawRectangle(brushes[1], new XRect(new XPoint(smallRectStartCo[0].X, smallRectStartCo[0].Y - OFFSET), new XPoint(smallRectStartCo[1].X + SMALLNOTERECTWIDTH, smallRectStartCo[1].Y + SMALLRECTHEIGHT - OFFSET)));
 
                 rectCurrentLine = new XRect(smallRectStartCo[0], new XPoint(LEFTBLANK + SMALLDATERECTWIDTH, smallRectStartCo[0].Y + SMALLRECTHEIGHT));
-                xtf.DrawString(_lines[i].GetWeekdayS() + "  " + _lines[i].GetDateS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
+                xtf.DrawString(_lines[i].GetWeekdayS() + "      " + _lines[i].GetDateS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
                 rectCurrentLine = new XRect(smallRectStartCo[1], new XPoint(smallRectStartCo[1].X + SMALLNOTERECTWIDTH, smallRectStartCo[1].Y + SMALLRECTHEIGHT));
                 xtf.DrawString(_lines[i].GetNotes(), regularFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
 
                 smallRectStartCo[0].Y += SMALLRECTHEIGHT;
                 smallRectStartCo[1].Y += SMALLRECTHEIGHT;
             }
-            //The second column if exists
-            if (this._lines.Count > ROWS)
-            {
-                for (int i = 0; i < _lines.Count - ROWS && i < ROWS; i++)
+            //The second column
+                for (int i = 0; i < _lines.Count && i < ROWS; i++)
                 {
                     //The color
                     if (i % 2 != 0) xGps.DrawRectangle(brushes[0], new XRect(new XPoint(smallRectStartCo[2].X, smallRectStartCo[2].Y - OFFSET), new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[3].Y + SMALLRECTHEIGHT - OFFSET)));
                     else xGps.DrawRectangle(brushes[1], new XRect(new XPoint(smallRectStartCo[2].X, smallRectStartCo[2].Y - OFFSET), new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[3].Y + SMALLRECTHEIGHT - OFFSET)));
 
                     rectCurrentLine = new XRect(smallRectStartCo[2], new XPoint(smallRectStartCo[3].X, smallRectStartCo[2].Y + SMALLRECTHEIGHT));
-                    xtf.DrawString(_lines[i + (int)ROWS].GetWeekdayS() + "  " + _lines[i + (int)ROWS].GetDateS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
+                    xtf.DrawString(_lines[i].GetWeekdayS() + "      " + _lines[i].GetDateS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
                     rectCurrentLine = new XRect(smallRectStartCo[3], new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[3].Y + SMALLRECTHEIGHT));
-                    xtf.DrawString(_lines[i + (int)ROWS].GetNotes(), regularFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
+                    xtf.DrawString(_lines[i].GetNotes(), regularFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
 
                     smallRectStartCo[2].Y += SMALLRECTHEIGHT;
                     smallRectStartCo[3].Y += SMALLRECTHEIGHT;
                 }
-            }
+
             #endregion
 
             #region Bottom
 
+            // Seperate lines
+            xGps.DrawLine(darkPen, smallRectStartCo[0].X, TOPHEIGHT - 4, smallRectStartCo[1].X + SMALLNOTERECTWIDTH + 5, TOPHEIGHT - 4);
+            xGps.DrawLine(pen, LEFTBLANK + Formats.GetPixel(5), TOPHEIGHT - Formats.GetPixel(5.5), LEFTBLANK + Formats.GetPixel(5.5), smallRectStartCo[0].Y);
+            xGps.DrawLine(pen, smallRectStartCo[1].X - 15, TOPHEIGHT - Formats.GetPixel(5.5), smallRectStartCo[1].X - 15, smallRectStartCo[1].Y);
+
+            xGps.DrawLine(darkPen, smallRectStartCo[2].X, TOPHEIGHT - 4, smallRectStartCo[3].X + SMALLNOTERECTWIDTH + 5, TOPHEIGHT - 4);
+            xGps.DrawLine(pen, smallRectStartCo[2].X + Formats.GetPixel(5.5), TOPHEIGHT - Formats.GetPixel(5), smallRectStartCo[2].X + Formats.GetPixel(5.5), smallRectStartCo[0].Y);
+            xGps.DrawLine(pen, smallRectStartCo[3].X - 15, TOPHEIGHT - Formats.GetPixel(5.5), smallRectStartCo[3].X - 15, smallRectStartCo[1].Y);
+
+
+
             XRect rect;
-            const string INFO1 = "Alle Termine dieser Liste müssen in der Kursmappe eingetragen sein," +
-                            "auch die unterrichtsfreien Tage. Alle Termine(außer den Ferien)" +
-                            "müssen durch ihre Paraphe bestätigt werden. Tragen Sie bitte auch" +
+            const string INFO1 = "Alle Termine dieser Liste müssen in der Kursmappe eingetragen sein, " +
+                            "auch die unterrichtsfreien Tage. Alle Termine(außer den Ferien) " +
+                            "müssen durch ihre Paraphe bestätigt werden. Tragen Sie bitte auch " +
                             "die Fehlstundenzahl sowie die Soll - Ist - Stunden(Kursheft S.5) ein. ";
             const string INFO2 = "Hinweis: Schüler, die aus schulischen Gründen den Unterricht " +
                                 "versäumt haben(Klausur, schul.Veranstaltung usw.) müssen im " +
                                 "Kursheft aufgeführt werden. Diese Stunden dürfen auf dem " +
                                 "Zeugnis aber nicht als Fehlstunden vermerkt werden.";
-            string OUTPUT = INFO1 + "\r\n\r\n" + INFO2;
+            string OUTPUT = INFO1 + "\r\n" + INFO2;
 
-            //If there is no lines at the second column, put the info direct at the second line. 
-            if (this._lines.Count - ROWS > 0)
-            {
-                rect = new XRect(smallRectStartCo[2].X, smallRectStartCo[2].Y + SMALLRECTHEIGHT, SMALLDATERECTWIDTH + SMALLNOTERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[2].Y + SMALLRECTHEIGHT));
-                xtf.DrawString(OUTPUT, smallNoteFont, XBrushes.Black, rect, XStringFormats.TopLeft);
-            }
-            //Otherwise, add spaces
-            else
-            {
-                rect = new XRect(smallRectStartCo[2].X, smallRectStartCo[2].Y, SMALLDATERECTWIDTH + SMALLNOTERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[2].Y + SMALLRECTHEIGHT));
-                xtf.DrawString(OUTPUT, smallNoteFont, XBrushes.Black, rect, XStringFormats.TopLeft);
-            }
 
             rect = new XRect(smallRectStartCo[0].X, smallRectStartCo[0].Y + Formats.GetPixel(1), SMALLNOTERECTWIDTH + SMALLDATERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[0].Y + SMALLRECTHEIGHT / 2));
             xGps.DrawString($"1. Kursabschnitt: {periods[0]:dd.MM.yyyy} - {periods[1]:dd.MM.yyyy}", regularFont, XBrushes.Black, rect, XStringFormats.TopLeft);
             smallRectStartCo[0].Y += SMALLRECTHEIGHT / 2 + Formats.GetPixel(2);
             rect = new XRect(smallRectStartCo[0].X, smallRectStartCo[0].Y + Formats.GetPixel(1), SMALLNOTERECTWIDTH + SMALLDATERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[0].Y + SMALLRECTHEIGHT / 2));
             xGps.DrawString($"2. Kursabschnitt: {periods[2]:dd.MM.yyyy} - {periods[3]:dd.MM.yyyy}", regularFont, XBrushes.Black, rect, XStringFormats.TopLeft);
+
+            smallRectStartCo[0].Y += SMALLRECTHEIGHT / 2 + Formats.GetPixel(6);
+            rect = new XRect(smallRectStartCo[0].X, smallRectStartCo[0].Y + Formats.GetPixel(1), SMALLNOTERECTWIDTH + SMALLDATERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[0].Y + SMALLRECTHEIGHT / 2));
+            xtf.DrawString(OUTPUT, smallNoteFont, XBrushes.Black, rect, XStringFormats.TopLeft);
+
+
+            //Set the current date and the half year
+            XRect rectDate = new XRect(Formats.GetPixel(180), Formats.GetPixel(289), Formats.GetPixel(28), Formats.GetPixel(4));
+            xGps.DrawString($"Stand: {dtNow:dd.MM.yyyy}", regularFont, XBrushes.Gray, rectDate, XStringFormats.TopRight);
+
+            XRect rectYear = new XRect(Formats.GetPixel(180), Formats.GetPixel(293), Formats.GetPixel(28), Formats.GetPixel(4));
+            xGps.DrawString(DateTimeCalcUtils.GetHalfYear(this._lines[0].GetDate()), boldFont, XBrushes.Gray, rectYear, XStringFormats.TopRight);
             #endregion
 
             #region Clean Up
 
             //Test illegal character to avoid the error when saving the document
-            foreach (char c in title.ToCharArray())
+            foreach (char c in fileName.ToCharArray())
             {
                 //Test if there is illegal character in the title
                 if (!((c >= 97 && c <= 123) || (c >= 48 && c <= 57) || (c >= 65 && c <= 90) ||
@@ -252,16 +248,15 @@ namespace KursheftTools
                         c == 'ß' || c == 'Ä' || c == 'Ö' || c == 'Ü'))
                 {
                     //Replace it with .
-                    title = title.Replace(c, '.');
+                    fileName = fileName.Replace(c, '.');
                 }
             }
 
-            document.Save($"{storedPath}\\{title}.pdf");
+            document.Save($"{storedPath}\\{fileName}.pdf");
             document.Close();
             document.Dispose();
-            //GC.Collect();
 
-            Debug.WriteLine($"{storedPath}\\{title}.pdf ist exportiert.");
+            Debug.WriteLine($"{storedPath}\\{fileName}.pdf ist exportiert.");
             #endregion
             return true;
         }

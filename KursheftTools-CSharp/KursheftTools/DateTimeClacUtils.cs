@@ -147,6 +147,12 @@ namespace KursheftTools
             else return $"1. Halbjahr {dt:yyyy}/{dt.AddDays(365):yy}";
         }
 
+        public static byte GetHalfYearAsNumber(DateTime dt)
+        {
+            if (dt.GetWeekOfYear() < 30) return 2;
+            else return 1;
+        }
+
         /// <summary>
         /// Calculates number of business days, taking into account:
         ///  - weekends (Saturdays and Sundays)

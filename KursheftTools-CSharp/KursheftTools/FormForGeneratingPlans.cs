@@ -306,7 +306,7 @@ namespace KursheftTools
                     currentCoursePlan.ReadNoteBoard(_noteBoard, dates[i], isRegular[i], _holidays);
                     //After all the note board processed
                     //Export the current course plan
-                    _ = currentCoursePlan.ExportAsPDF(_periods, _PDFStorePath, !string.IsNullOrEmpty(_logoStorePath) ? _logoStorePath : "default");
+                    _ = currentCoursePlan.ExportAsPDF(_periods, _PDFStorePath);
                     CurrentInfo = $"{currentCoursePlan.GetTitle()} wurde exportiert. ";
                     ExportedPDFs++;
                 }
