@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System;
 using Excel = Microsoft.Office.Interop.Excel;
+using System.CodeDom;
 
 namespace KursheftTools
 {
@@ -76,9 +77,10 @@ namespace KursheftTools
             DateTime dtNow = DateTime.Now;
             string fileName = $"{this._courseName}-{this._teacher}-{this._className}";
             string title1 = $"Jahrgangstufe {this._className.Substring(0,2)}.{DateTimeCalcUtils.GetHalfYearAsNumber(dtNow)}    {DateTimeCalcUtils.GetHalfYear(dtNow)}";
-            string title2 = $"Sollstunde für Kurs  {this._courseName}-{this._teacher}";
-            const string columnTitle1 = "Tag    Datum";
-            const string columnTitle2 = "Besonderheit";
+            string title2 = $"Sollstunde für Kurs  {this._courseName}-{this._teacher}-{this._className}";
+            const string columnTitle1 = "Tag";
+            const string columnTitle2 = "Datum";
+            const string columnTitle3 = "Besonderheit";
 
             PdfDocument document = new PdfDocument();
             PdfPage page = document.AddPage();
@@ -87,7 +89,8 @@ namespace KursheftTools
             #region Preset Format
             const double ROWS = 60;
             //double SMALLWEEKDAYRECTWIDTH = Formats.getPixel(5);
-            double SMALLDATERECTWIDTH = Formats.GetPixel(30);
+            double SMALLDAYRECTWIDTH = Formats.GetPixel(10);
+            double SMALLDATERECTWIDTH = Formats.GetPixel(20);
             double SMALLNOTERECTWIDTH = Formats.GetPixel(55);
             double SMALLRECTHEIGHT = Formats.GetPixel(3.6);
             double TOPHEIGHT = Formats.GetPixel(28);
@@ -96,7 +99,7 @@ namespace KursheftTools
             //double RIGHTBLANK = Formats.getPixel(10);
             double OFFSET = Formats.GetPixel(0.6);
             //IN PIXEL
-            XPoint[] smallRectStartCo = new XPoint[4] { new XPoint(), new XPoint(), new XPoint(), new XPoint() };
+            XPoint[] smallRectStartCo = new XPoint[6] { new XPoint(),new XPoint(),new XPoint(), new XPoint(), new XPoint(), new XPoint() };
 
             #endregion
 
@@ -120,12 +123,16 @@ namespace KursheftTools
 
             smallRectStartCo[0].X = LEFTBLANK;
             smallRectStartCo[0].Y = TOPHEIGHT;
-            smallRectStartCo[1].X = LEFTBLANK + SMALLDATERECTWIDTH;
+            smallRectStartCo[1].X = LEFTBLANK + SMALLDAYRECTWIDTH;
             smallRectStartCo[1].Y = TOPHEIGHT;
-            smallRectStartCo[2].X = LEFTBLANK + SMALLDATERECTWIDTH + SMALLNOTERECTWIDTH + CENTERBLANK;
+            smallRectStartCo[2].X = LEFTBLANK + SMALLDAYRECTWIDTH + SMALLDATERECTWIDTH;
             smallRectStartCo[2].Y = TOPHEIGHT;
-            smallRectStartCo[3].X = LEFTBLANK + CENTERBLANK + 2 * SMALLDATERECTWIDTH + SMALLNOTERECTWIDTH;
+            smallRectStartCo[3].X = LEFTBLANK + SMALLDAYRECTWIDTH + SMALLDATERECTWIDTH + SMALLNOTERECTWIDTH + CENTERBLANK;
             smallRectStartCo[3].Y = TOPHEIGHT;
+            smallRectStartCo[4].X = LEFTBLANK + 2 * SMALLDAYRECTWIDTH + SMALLDATERECTWIDTH + SMALLNOTERECTWIDTH + CENTERBLANK;
+            smallRectStartCo[4].Y = TOPHEIGHT;
+            smallRectStartCo[5].X = LEFTBLANK + CENTERBLANK + 2 * SMALLDAYRECTWIDTH + 2 * SMALLDATERECTWIDTH + SMALLNOTERECTWIDTH;
+            smallRectStartCo[5].Y = TOPHEIGHT;
 
             #endregion
 
@@ -138,22 +145,26 @@ namespace KursheftTools
             rectTitle = new XRect(Formats.GetPixel(10), Formats.GetPixel(12), Formats.GetPixel(85), Formats.GetPixel(7));
             xGps.DrawString(title2, titleFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
 
-            rectTitle = new XRect(smallRectStartCo[2].X, Formats.GetPixel(5), Formats.GetPixel(85), Formats.GetPixel(7));
+            rectTitle = new XRect(smallRectStartCo[3].X, Formats.GetPixel(5), Formats.GetPixel(85), Formats.GetPixel(7));
             xGps.DrawString(title1, titleFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
 
-            rectTitle = new XRect(smallRectStartCo[2].X, Formats.GetPixel(12), Formats.GetPixel(85), Formats.GetPixel(7));
+            rectTitle = new XRect(smallRectStartCo[3].X, Formats.GetPixel(12), Formats.GetPixel(85), Formats.GetPixel(7));
             xGps.DrawString(title2, titleFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
 
             // column titles
             rectTitle = new XRect(new XPoint(smallRectStartCo[0].X, smallRectStartCo[0].Y - SMALLRECTHEIGHT - 5), new XPoint(LEFTBLANK + SMALLDATERECTWIDTH, smallRectStartCo[0].Y));
             xGps.DrawString(columnTitle1, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
-            rectTitle = new XRect(new XPoint(smallRectStartCo[1].X, smallRectStartCo[0].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[1].X + SMALLNOTERECTWIDTH, smallRectStartCo[1].Y));
+            rectTitle = new XRect(new XPoint(smallRectStartCo[1].X, smallRectStartCo[0].Y - SMALLRECTHEIGHT - 5), new XPoint(LEFTBLANK + SMALLDATERECTWIDTH, smallRectStartCo[0].Y));
             xGps.DrawString(columnTitle2, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
+            rectTitle = new XRect(new XPoint(smallRectStartCo[2].X, smallRectStartCo[0].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[2].X + SMALLNOTERECTWIDTH, smallRectStartCo[2].Y));
+            xGps.DrawString(columnTitle3, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
             
-            rectTitle = new XRect(new XPoint(smallRectStartCo[2].X, smallRectStartCo[2].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[2].X, smallRectStartCo[2].Y));
+            rectTitle = new XRect(new XPoint(smallRectStartCo[3].X, smallRectStartCo[3].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[3].X, smallRectStartCo[3].Y));
             xGps.DrawString(columnTitle1, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
-            rectTitle = new XRect(new XPoint(smallRectStartCo[3].X, smallRectStartCo[2].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[3].Y));
-            xGps.DrawString(columnTitle2, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
+            rectTitle = new XRect(new XPoint(smallRectStartCo[4].X, smallRectStartCo[3].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[4].X, smallRectStartCo[3].Y));
+            xGps.DrawString(columnTitle1, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
+            rectTitle = new XRect(new XPoint(smallRectStartCo[5].X, smallRectStartCo[3].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[5].X + SMALLNOTERECTWIDTH, smallRectStartCo[5].Y));
+            xGps.DrawString(columnTitle3, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
 
             #endregion
 
@@ -164,45 +175,51 @@ namespace KursheftTools
             for (int i = 0; i < this._lines.Count && i < ROWS; i++)
             {
                 //The color
-                if (i % 2 != 0) xGps.DrawRectangle(brushes[0], new XRect(new XPoint(smallRectStartCo[0].X, smallRectStartCo[0].Y - OFFSET), new XPoint(smallRectStartCo[1].X + SMALLNOTERECTWIDTH, smallRectStartCo[1].Y + SMALLRECTHEIGHT - OFFSET)));
-                else xGps.DrawRectangle(brushes[1], new XRect(new XPoint(smallRectStartCo[0].X, smallRectStartCo[0].Y - OFFSET), new XPoint(smallRectStartCo[1].X + SMALLNOTERECTWIDTH, smallRectStartCo[1].Y + SMALLRECTHEIGHT - OFFSET)));
+                if (i % 2 != 0) xGps.DrawRectangle(brushes[0], new XRect(new XPoint(smallRectStartCo[0].X, smallRectStartCo[0].Y - OFFSET), new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[2].Y + SMALLRECTHEIGHT - OFFSET)));
+                else xGps.DrawRectangle(brushes[1], new XRect(new XPoint(smallRectStartCo[0].X, smallRectStartCo[0].Y - OFFSET), new XPoint(smallRectStartCo[2].X + SMALLNOTERECTWIDTH, smallRectStartCo[2].Y + SMALLRECTHEIGHT - OFFSET)));
 
-                rectCurrentLine = new XRect(smallRectStartCo[0], new XPoint(LEFTBLANK + SMALLDATERECTWIDTH, smallRectStartCo[0].Y + SMALLRECTHEIGHT));
-                xtf.DrawString(_lines[i].GetWeekdayS() + "      " + _lines[i].GetDateS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
-                rectCurrentLine = new XRect(smallRectStartCo[1], new XPoint(smallRectStartCo[1].X + SMALLNOTERECTWIDTH, smallRectStartCo[1].Y + SMALLRECTHEIGHT));
+                rectCurrentLine = new XRect(smallRectStartCo[0], new XPoint(LEFTBLANK + SMALLDAYRECTWIDTH, smallRectStartCo[0].Y + SMALLRECTHEIGHT));
+                xtf.DrawString(_lines[i].GetWeekdayS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
+                rectCurrentLine = new XRect(smallRectStartCo[1], new XPoint(LEFTBLANK + SMALLDATERECTWIDTH, smallRectStartCo[1].Y + SMALLRECTHEIGHT));
+                xtf.DrawString(_lines[i].GetDateS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
+                rectCurrentLine = new XRect(smallRectStartCo[2], new XPoint(smallRectStartCo[2].X + SMALLNOTERECTWIDTH, smallRectStartCo[2].Y + SMALLRECTHEIGHT));
                 xtf.DrawString(_lines[i].GetNotes(), regularFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
 
                 smallRectStartCo[0].Y += SMALLRECTHEIGHT;
                 smallRectStartCo[1].Y += SMALLRECTHEIGHT;
+                smallRectStartCo[2].Y += SMALLRECTHEIGHT;
             }
             //The second column
                 for (int i = 0; i < _lines.Count && i < ROWS; i++)
                 {
                     //The color
-                    if (i % 2 != 0) xGps.DrawRectangle(brushes[0], new XRect(new XPoint(smallRectStartCo[2].X, smallRectStartCo[2].Y - OFFSET), new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[3].Y + SMALLRECTHEIGHT - OFFSET)));
-                    else xGps.DrawRectangle(brushes[1], new XRect(new XPoint(smallRectStartCo[2].X, smallRectStartCo[2].Y - OFFSET), new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[3].Y + SMALLRECTHEIGHT - OFFSET)));
+                    if (i % 2 != 0) xGps.DrawRectangle(brushes[0], new XRect(new XPoint(smallRectStartCo[3].X, smallRectStartCo[3].Y - OFFSET), new XPoint(smallRectStartCo[5].X + SMALLNOTERECTWIDTH, smallRectStartCo[5].Y + SMALLRECTHEIGHT - OFFSET)));
+                    else xGps.DrawRectangle(brushes[1], new XRect(new XPoint(smallRectStartCo[3].X, smallRectStartCo[3].Y - OFFSET), new XPoint(smallRectStartCo[5].X + SMALLNOTERECTWIDTH, smallRectStartCo[5].Y + SMALLRECTHEIGHT - OFFSET)));
 
-                    rectCurrentLine = new XRect(smallRectStartCo[2], new XPoint(smallRectStartCo[3].X, smallRectStartCo[2].Y + SMALLRECTHEIGHT));
-                    xtf.DrawString(_lines[i].GetWeekdayS() + "      " + _lines[i].GetDateS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
-                    rectCurrentLine = new XRect(smallRectStartCo[3], new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[3].Y + SMALLRECTHEIGHT));
+                    rectCurrentLine = new XRect(smallRectStartCo[3], new XPoint(smallRectStartCo[4].X, smallRectStartCo[3].Y + SMALLRECTHEIGHT));
+                    xtf.DrawString(_lines[i].GetWeekdayS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
+                    rectCurrentLine = new XRect(smallRectStartCo[4], new XPoint(smallRectStartCo[5].X, smallRectStartCo[4].Y + SMALLRECTHEIGHT));
+                    xtf.DrawString(_lines[i].GetDateS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
+                    rectCurrentLine = new XRect(smallRectStartCo[5], new XPoint(smallRectStartCo[5].X + SMALLNOTERECTWIDTH, smallRectStartCo[5].Y + SMALLRECTHEIGHT));
                     xtf.DrawString(_lines[i].GetNotes(), regularFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
 
-                    smallRectStartCo[2].Y += SMALLRECTHEIGHT;
                     smallRectStartCo[3].Y += SMALLRECTHEIGHT;
-                }
+                    smallRectStartCo[4].Y += SMALLRECTHEIGHT;
+                    smallRectStartCo[5].Y += SMALLRECTHEIGHT;
+            }
 
             #endregion
 
             #region Bottom
 
             // Seperate lines
-            xGps.DrawLine(darkPen, smallRectStartCo[0].X, TOPHEIGHT - 4, smallRectStartCo[1].X + SMALLNOTERECTWIDTH + 5, TOPHEIGHT - 4);
-            xGps.DrawLine(pen, LEFTBLANK + Formats.GetPixel(5), TOPHEIGHT - Formats.GetPixel(5.5), LEFTBLANK + Formats.GetPixel(5.5), smallRectStartCo[0].Y);
-            xGps.DrawLine(pen, smallRectStartCo[1].X - 15, TOPHEIGHT - Formats.GetPixel(5.5), smallRectStartCo[1].X - 15, smallRectStartCo[1].Y);
+            xGps.DrawLine(darkPen, smallRectStartCo[0].X, TOPHEIGHT - 4, smallRectStartCo[2].X + SMALLNOTERECTWIDTH + 5, TOPHEIGHT - 4);
+            xGps.DrawLine(pen, smallRectStartCo[1].X - 6, TOPHEIGHT - Formats.GetPixel(5.5), smallRectStartCo[1].X - 6, smallRectStartCo[0].Y);
+            xGps.DrawLine(pen, smallRectStartCo[2].X - 15, TOPHEIGHT - Formats.GetPixel(5.5), smallRectStartCo[2].X - 15, smallRectStartCo[1].Y);
 
-            xGps.DrawLine(darkPen, smallRectStartCo[2].X, TOPHEIGHT - 4, smallRectStartCo[3].X + SMALLNOTERECTWIDTH + 5, TOPHEIGHT - 4);
-            xGps.DrawLine(pen, smallRectStartCo[2].X + Formats.GetPixel(5.5), TOPHEIGHT - Formats.GetPixel(5), smallRectStartCo[2].X + Formats.GetPixel(5.5), smallRectStartCo[0].Y);
-            xGps.DrawLine(pen, smallRectStartCo[3].X - 15, TOPHEIGHT - Formats.GetPixel(5.5), smallRectStartCo[3].X - 15, smallRectStartCo[1].Y);
+            xGps.DrawLine(darkPen, smallRectStartCo[3].X, TOPHEIGHT - 4, smallRectStartCo[5].X + SMALLNOTERECTWIDTH + 5, TOPHEIGHT - 4);
+            xGps.DrawLine(pen, smallRectStartCo[4].X -6, TOPHEIGHT - Formats.GetPixel(5), smallRectStartCo[4].X -6, smallRectStartCo[0].Y);
+            xGps.DrawLine(pen, smallRectStartCo[5].X - 15, TOPHEIGHT - Formats.GetPixel(5.5), smallRectStartCo[5].X - 15, smallRectStartCo[1].Y);
 
 
 

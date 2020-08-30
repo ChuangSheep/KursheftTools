@@ -69,6 +69,7 @@ namespace KursheftTools
             return cache;
         }
 
+
         /// <summary>
         /// ONLY FOR DEBUG USAGE
         /// Get the string form of this daynotes object

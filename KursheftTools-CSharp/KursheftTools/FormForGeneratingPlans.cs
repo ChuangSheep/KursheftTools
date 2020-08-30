@@ -1,4 +1,6 @@
-﻿using System;
+﻿using PdfSharp.Pdf;
+using PdfSharp.Pdf.IO;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
@@ -22,8 +24,9 @@ namespace KursheftTools
         //The information to show on the progress window
         public string CurrentInfo;
         private string _PDFStorePath;
-        private string _logoStorePath;
         private string[] _PDFClasses;
+        private string[] _grades;
+        private bool _mergeAfterExport;
         private readonly DateTime[] _periods;
         private readonly DataTable _coursePlan;
         private readonly DateTime[,] _holidays;
@@ -68,24 +71,6 @@ namespace KursheftTools
             }
         }
 
-        private void btnSearch2_Click(object sender, EventArgs e)
-        {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog
-            {
-                Filter = "Image Files (*.png, *.jpg, *.jpeg) | *.png; *.jpg; *.jpeg",
-                RestoreDirectory = true,
-                Multiselect = false
-            })
-            {
-
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    string path = openFileDialog.FileName;
-
-                    LogoPath.Text = path;
-                }
-            }
-        }
 
         /// <summary>
         /// Check the input data
@@ -100,7 +85,6 @@ namespace KursheftTools
             //Reset the colors
             Grades.BackColor = Color.White;
             StoredIn.BackColor = Color.White;
-            LogoPath.BackColor = Color.White;
 
             bool allRight = true;
 
@@ -111,12 +95,9 @@ namespace KursheftTools
                 StoredIn.BackColor = RED;
                 allRight = false;
             }
-            //If there is a wrong value for the LogoPath
-            if (!string.IsNullOrEmpty(LogoPath.Text) && !File.Exists(LogoPath.Text))
-            {
-                LogoPath.BackColor = RED;
-                allRight = false;
-            }
+
+            // Save the checkbox status
+            this._mergeAfterExport = DoMerge.Checked;
 
             //If the grades are not valid
             string[] gradesToExport = Grades.Text.Split(';');
@@ -137,14 +118,13 @@ namespace KursheftTools
 
                 //Write the text into the variables
                 _PDFStorePath = StoredIn.Text;
-                _logoStorePath = LogoPath.Text;
                 //Get all the classes that need to be exported
                 //If the user inputed 05, then the array will contain 05a, 05b, 05c, 05d, 05e
                 //Change the following if there is more or less classes
-                string[] GradesFromTB = Grades.Text.Split(';');
+                this._grades = gradesToExport;
                 List<string> grds = new List<string>();
                 string[] Classes = new string[5] { "a", "b", "c", "d", "e"};
-                foreach (string s in GradesFromTB)
+                foreach (string s in gradesToExport)
                 {
                     if (s == "Q1" || s == "Q2")
                     {
@@ -169,6 +149,13 @@ namespace KursheftTools
                 //Call the export function
                 //This will process the datatable, start the export and show a progress window
                 ExportPlans();
+
+                // If should merge, then merge
+                if (this._mergeAfterExport)
+                {
+                    MergePDFs();
+                }
+                GC.Collect();
 
                 MessageBox.Show($"{ExportedPDFs} PDF-Datei wurde erfolgreich exportiert unter\r\n {_PDFStorePath}", "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 DialogResult = DialogResult.Yes;
@@ -321,6 +308,37 @@ namespace KursheftTools
             //Close the progress window
             progressWindowThread.Abort();
             System.Diagnostics.Debug.WriteLine($"{ExportedPDFs} wurde exportiert unter: {_PDFStorePath}");
+        }
+
+        private void MergePDFs()
+        {
+            string[] pdfs = Directory.GetFiles(_PDFStorePath);
+            PdfDocument document = new PdfDocument();
+            foreach (string pdfFile in pdfs)
+            {
+                if (pdfFile.Contains("merged")) continue;
+                PdfDocument inputPDFDocument = PdfReader.Open(pdfFile, PdfDocumentOpenMode.Import);
+                document.Version = inputPDFDocument.Version;
+                foreach (PdfPage page in inputPDFDocument.Pages)
+                {
+                    document.AddPage(page);
+                }
+                // Delete the origin if needed
+                // System.IO.File.Delete(pdfFile);
+            }
+
+            string gradesStr = "";
+            foreach (string s in this._grades)
+            {
+                gradesStr += $"-{s}";
+            }
+
+            document.Options.CompressContentStreams = true;
+            document.Options.NoCompression = false;
+
+            document.Save($"{this._PDFStorePath}/merged{gradesStr}.pdf");
+            document.Close();
+            document.Dispose();
         }
     }
 }

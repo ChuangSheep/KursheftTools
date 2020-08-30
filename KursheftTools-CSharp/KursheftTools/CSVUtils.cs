@@ -1,11 +1,12 @@
 ﻿using Microsoft.VisualBasic.FileIO;
 using System.Data;
-
+using System.Text;
 
 namespace KursheftTools
 {
     public static class CSVUtils
     {
+        public const string Encoding = "utf-8";
         /// <summary>
         /// Import a csv file as a Datatable
         /// </summary>
@@ -18,7 +19,7 @@ namespace KursheftTools
         {
             DataTable datatableCSV = new DataTable(datatableName);
             //The encodeing is set to Windows 1252: Western European
-            using (TextFieldParser csvParser = new TextFieldParser(path, System.Text.Encoding.GetEncoding(1252)))
+            using (TextFieldParser csvParser = new TextFieldParser(path, System.Text.Encoding.GetEncoding(Encoding)))
             {
                 csvParser.SetDelimiters(";");
                 csvParser.HasFieldsEnclosedInQuotes = true;
