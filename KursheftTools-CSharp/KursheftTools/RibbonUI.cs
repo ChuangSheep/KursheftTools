@@ -257,8 +257,8 @@ namespace KursheftTools
                         //Try to split the dates
                         string[] datesStrings = datesCell.Split('~');
                         //Maybe we should handle this situation with another way
-                        if (datesStrings.Length != 3) throw new ArgumentException("The length of the date string array is not three", nameof(datesStrings));
-                        DateTime[] dts = new DateTime[3] { DateTime.Parse(datesStrings[0], DEUTSCHCULT), DateTime.Parse(datesStrings[1], DEUTSCHCULT), DateTime.Parse(datesStrings[2], DEUTSCHCULT) };
+                        if (datesStrings.Length != 4) throw new ArgumentException("The length of the date string array is not three", nameof(datesStrings));
+                        DateTime[] dts = new DateTime[4] { DateTime.Parse(datesStrings[0], DEUTSCHCULT), DateTime.Parse(datesStrings[1], DEUTSCHCULT), DateTime.Parse(datesStrings[2], DEUTSCHCULT), DateTime.Parse(datesStrings[3], DEUTSCHCULT) };
                     }
                     catch (ArgumentNullException)
                     {

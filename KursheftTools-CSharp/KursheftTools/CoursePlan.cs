@@ -175,7 +175,7 @@ namespace KursheftTools
             for (int i = 0; i < this._lines.Count && i < ROWS; i++)
             {
                 //The color
-                if (i % 2 != 0) xGps.DrawRectangle(brushes[0], new XRect(new XPoint(smallRectStartCo[0].X, smallRectStartCo[0].Y - OFFSET), new XPoint(smallRectStartCo[3].X + SMALLNOTERECTWIDTH, smallRectStartCo[2].Y + SMALLRECTHEIGHT - OFFSET)));
+                if (i % 2 != 0) xGps.DrawRectangle(brushes[0], new XRect(new XPoint(smallRectStartCo[0].X, smallRectStartCo[0].Y - OFFSET), new XPoint(smallRectStartCo[2].X + SMALLNOTERECTWIDTH, smallRectStartCo[2].Y + SMALLRECTHEIGHT - OFFSET)));
                 else xGps.DrawRectangle(brushes[1], new XRect(new XPoint(smallRectStartCo[0].X, smallRectStartCo[0].Y - OFFSET), new XPoint(smallRectStartCo[2].X + SMALLNOTERECTWIDTH, smallRectStartCo[2].Y + SMALLRECTHEIGHT - OFFSET)));
 
                 rectCurrentLine = new XRect(smallRectStartCo[0], new XPoint(LEFTBLANK + SMALLDAYRECTWIDTH, smallRectStartCo[0].Y + SMALLRECTHEIGHT));

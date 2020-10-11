@@ -32,11 +32,11 @@ namespace KursheftTools
 
             const string THIRDPARTY = "THE FOLLOWING LICENCES ARE FOR THE BUNDLED THIRD PARTY SOFTWARE(s). FOR THE LICENSE FOR THIS OFFICE ADDIN, SEE \"INFO\". \r\n\r\n" +
                 "THE FOLLOWING NOTICES ARE PROVIDED FOR THIRD PARTY SOFTWARE THAT MAY BE CONTAINED IN PORTIONS OF THIS OFFICE ADDIN\r\n\r\n-----\r\n\r\n";
-            const string INCLUDED = "The following software may be included in this product: ";
+            const string INCLUDED = "The following software may be included in this product: \r\n";
             const string NOTICE = "This software contains the following license and notice bellow:\r\n\r\n";
             const string SOURCECODE = "The source code is available at ";
 
-            this.licenseTB.Text = THIRDPARTY + INCLUDED + "PDFsharp. " + SOURCECODE + "https://github.com/empira/PDFsharp. " + NOTICE + MITLICENSE;
+            this.licenseTB.Text = THIRDPARTY + INCLUDED + "PDFsharp. \r\n" + SOURCECODE + "https://github.com/empira/PDFsharp. " + NOTICE + MITLICENSE;
 
         }
 

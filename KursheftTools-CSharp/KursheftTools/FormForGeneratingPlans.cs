@@ -31,7 +31,6 @@ namespace KursheftTools
         private readonly DataTable _coursePlan;
         private readonly DateTime[,] _holidays;
         //Change if there is more grades
-        //ex. "10" for the Realschule und Hauptschule
         private static readonly string[] VALIDGRADES = new string[8] { "05", "06", "07", "08", "09", "EF", "Q1", "Q2" };
 
         /// <summary>
@@ -50,7 +49,7 @@ namespace KursheftTools
             _noteBoard = sheet;
             _coursePlan = coursePlan;
             _holidays = holidays;
-            
+
             InitializeComponent();
         }
 
@@ -65,7 +64,6 @@ namespace KursheftTools
                 if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
                 {
                     string path = folderBrowserDialog.SelectedPath;
-
                     StoredIn.Text = path;
                 }
             }
@@ -123,32 +121,30 @@ namespace KursheftTools
                 //Change the following if there is more or less classes
                 this._grades = gradesToExport;
                 List<string> grds = new List<string>();
-                string[] Classes = new string[5] { "a", "b", "c", "d", "e"};
+                string[] Classes = new string[5] { "a", "b", "c", "d", "e" };
+                // Added single grade to process the course for the whole grade
+                // i.e. all courses except d, e and m in EF
+                // Refer to fixCourseList.py for detail
+                grds.AddRange(gradesToExport);
                 foreach (string s in gradesToExport)
                 {
-                    if (s == "Q1" || s == "Q2")
+                    foreach (string cls in Classes)
                     {
-                        grds.Add(s);
+                        grds.Add(s + cls);
                     }
-                    else
+                    if (s == "EF")
                     {
-                        foreach (string cls in Classes)
-                        {
-                            grds.Add(s + cls);
-                        }
-                        if (s == "EF")
-                        {
-                            grds.Add(s + "f");
-                        }
+                        grds.Add(s + "f");
                     }
-                }
 
+                }
                 _PDFClasses = grds.ToArray();
 
 
                 //Call the export function
                 //This will process the datatable, start the export and show a progress window
                 ExportPlans();
+
 
                 // If should merge, then merge
                 if (this._mergeAfterExport)
@@ -214,7 +210,7 @@ namespace KursheftTools
                         if (currentCourse.Length != 0 && !string.IsNullOrEmpty((string)currentCourse[0].ItemArray[1]))
                         {
                             //Create a new plan
-                            CoursePlan currentPlan = new CoursePlan(currentCourse[0].ItemArray[3].ToString(), currentCourse[0].ItemArray[1].ToString(),
+                            CoursePlan currentPlan = new CoursePlan(currentCourse[0].ItemArray[3].ToString(), currentCourse[0].ItemArray[1].ToString().Substring(0,2),
                                                                 currentCourse[0].ItemArray[2].ToString());
                             List<DateTime> currentDT = new List<DateTime>();
                             List<string> currentIsRegular = new List<string>();
@@ -230,7 +226,7 @@ namespace KursheftTools
                                     DateTime.Compare(DateTimeCalcUtils.GetNearestWeekdayS(_periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString(), DEUTSCHCULT))), currentDT.Last()) != 0)
                                 {
                                     currentDT.Add(DateTimeCalcUtils.GetNearestWeekdayS(_periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString(), DEUTSCHCULT))));
-                                    
+
                                     //If the course is on the 8th hour, then it will only be on even weeks
                                     if (row.ItemArray[6].ToString() == "8")
                                     {
@@ -248,7 +244,7 @@ namespace KursheftTools
                                     }
                                 }
                                 //If the isRegular value, however, are not the same, then if there's a course on this day on every week, set isRegular to regular("")
-                                else if (!string.IsNullOrEmpty(currentIsRegular.Last()) && 
+                                else if (!string.IsNullOrEmpty(currentIsRegular.Last()) &&
                                             //If this course will be held on 8th AND on 9th hour
                                             //Then change the IsRegular to every week
                                             (
@@ -282,7 +278,7 @@ namespace KursheftTools
                 FormProgress formProgress = new FormProgress(this, plans.Count);
                 formProgress.ShowDialog();
             });
-           progressWindowThread.Start();
+            progressWindowThread.Start();
 
             //Export them
             if (plans.Count == dates.Count && dates.Count == isRegular.Count && isRegular.Count != 0)
@@ -302,7 +298,7 @@ namespace KursheftTools
             else
             {
                 System.Diagnostics.Debug.WriteLine("The Plans is empty: no plan stored");
-                ExportedPDFs =  -1;
+                ExportedPDFs = -1;
             }
 
             //Close the progress window
