@@ -162,7 +162,7 @@ namespace KursheftTools
             rectTitle = new XRect(new XPoint(smallRectStartCo[3].X, smallRectStartCo[3].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[3].X, smallRectStartCo[3].Y));
             xGps.DrawString(columnTitle1, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
             rectTitle = new XRect(new XPoint(smallRectStartCo[4].X, smallRectStartCo[3].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[4].X, smallRectStartCo[3].Y));
-            xGps.DrawString(columnTitle1, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
+            xGps.DrawString(columnTitle2, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
             rectTitle = new XRect(new XPoint(smallRectStartCo[5].X, smallRectStartCo[3].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[5].X + SMALLNOTERECTWIDTH, smallRectStartCo[5].Y));
             xGps.DrawString(columnTitle3, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
 
