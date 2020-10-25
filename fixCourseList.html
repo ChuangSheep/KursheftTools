@@ -48,7 +48,7 @@
 
   function checkFileNameValidity(fileName) {
     let lastPointIndex = fileName.lastIndexOf('.');
-    return lastPointIndex == -1 || fileName.substr(lastPointIndex + 1) == "csv" || fileName.substr(lastPointIndex + 1) == "txt";
+    return lastPointIndex == -1 || fileName.substr(lastPointIndex + 1).toLowerCase() == "csv" || fileName.substr(lastPointIndex + 1).toLowerCase() == "txt";
   }
 
   function manageDownloadable(val) {
