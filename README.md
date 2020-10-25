@@ -1,4 +1,4 @@
-*Lang En |* [*De*](#Readme-De) <br>
+*Lang En |* [*De*](#Unavaliable) <br>
 
 # Kursheft Tools
 
@@ -135,9 +135,11 @@ ___
 <a name="ImportCourseList"></a>
 ### Import the course list (C#)
 
-*If you are using the VBA version, you can jump this part. The macro will ask you the input the path of the course list while you are trying to export it. [Go to Export the course plan directly. ](#ExportCoursePlan)* <br>
+***Process the course list using fixCourseList.py to delete the duplicate courses and generate a new text file for use.***
 
-To import the course list from a `.csv` file, click the button called **Kursliste importieren**. A dialog window will be opened and asks you to choose the .csv file that contains the course list. <br>
+***If there is not python interpreter installed, you can still use fixCourseList.html as alternative.***
+
+To import the course list from a `.csv` or `.txt` file, click the button called **Kursliste importieren**. A dialog window will be opened and asks you to choose the `.csv`/`.txt` file that has been processed by `fixCourseList.py/html`. <br>
 
 After excel has successfully imported the course list, a message box will show up that the import was completed. 
 

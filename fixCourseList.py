@@ -36,6 +36,7 @@ for index, line in enumerate(lines):
             elif currentInfo == line[line.find(';')+7:line.find(';')+17] and currentClass != line[line.find(';')+2:line.find(';')+5]:
                 toDelete.append(line)
             elif currentInfo == line[line.find(';')+7:line.find(';')+17] and currentClass == line[line.find(';')+2:line.find(';')+5]:
+                # Also immer noch derselbe Kurs
                 pass
             # lines[index] = line[:line.find(';')+4] + line[line.find(';')+5:]
 
