@@ -57,6 +57,8 @@ namespace KursheftTools
 
             for (byte i = 0; i < textBoxHolidays.Length; i++)
             {
+                textBoxHolidays[i].BackColor = WHITE;
+
                 string[] prds = textBoxHolidays[i].Text.Split('-');
                 try
                 {
@@ -78,23 +80,34 @@ namespace KursheftTools
                 if (periods[i + 1] < periods[i])
                 {
                     DialogResult = DialogResult.None;
+                    textboxes[i + 1].BackColor = RED;
+                    periods[i + 1] = new DateTime();
+                }
+            }
+
+            for (byte i = 0; i < 2; i++)
+            {
+                if (holidays[i, 1] < holidays[i, 0] || (DateTime.Compare(periods[2 * i + 1], new DateTime()) != 0 && holidays[i, 1] > periods[2 * i + 1]))
+                {
+                    DialogResult = DialogResult.None;
+                    textBoxHolidays[i].BackColor = RED;
                 }
             }
 
             if (DialogResult == DialogResult.Yes)
             {
-                this.Hide();
+                Hide();
                 if (CreateBoard(periods, holidays)) MessageBox.Show("Ein leerer Bemerkungsbogen wurde erfolgreich generiert.\r\nAbschnitts: " +
                     $"{periods[0]:dd.MM.yyyy} ~ {periods[1]:dd.MM.yyyy} | {periods[2]:dd.MM.yyyy} ~ {periods[3]:dd.MM.yyyy}",
                     "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                this.Close();
+                Close();
             }
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
         {
             DialogResult = DialogResult.Cancel;
-            this.Close();
+            Close();
         }
 
         private void ForForGeneratingNoteBoard_HelpButtonClicked(object sender, CancelEventArgs e)
@@ -157,7 +170,7 @@ namespace KursheftTools
             for (int i = 0; i < dateLength.Length; i++)
             {
                 tRange = sheet1.Range[sheet1.Cells[dateLength[i] + 3 + i, 1], sheet1.Cells[dateLength[i] + 3 + i, 1]];
-                tRange.Value = CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(startDates[i].DayOfWeek);
+                tRange.Value = DEUTSCHCULT.DateTimeFormat.GetDayName(startDates[i].DayOfWeek);
 
 
                 tRange = sheet1.Range[sheet1.Cells[dateLength[i] + 3 + i, 2], sheet1.Cells[dateLength[i] + 3 + i, 2]];
@@ -174,7 +187,7 @@ namespace KursheftTools
                     tRange.AutoFill(sheet1.Range[sheet1.Cells[dateLength[i] + 3 + i, 1], sheet1.Cells[dateLength[i + 1] + i + 2, 1]], Excel.XlAutoFillType.xlFillWeekdays);
                 }
             }
-            sheet1.Cells[dateLength[2] + 3 + 1, 1] = CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(dates[3].DayOfWeek);
+            sheet1.Cells[dateLength[2] + 3 + 1, 1] = DEUTSCHCULT.DateTimeFormat.GetDayName(dates[3].DayOfWeek);
             sheet1.Cells[dateLength[2] + 3 + 2, 1] = "";
             sheet1.Cells[dateLength[2] + 3 + 1, 2] = dates[3].Date;
             sheet1.Cells[dateLength[2] + 3 + 2, 2] = titlesStart[2];
