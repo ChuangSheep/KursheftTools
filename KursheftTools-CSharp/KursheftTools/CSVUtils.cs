@@ -18,8 +18,9 @@ namespace KursheftTools
         public static DataTable ImportCSVasDT(string path, string datatableName = null, bool hasTitle = true, string[] columnNames = null)
         {
             DataTable datatableCSV = new DataTable(datatableName);
-            //The encodeing is set to Windows 1252: Western European
-            using (TextFieldParser csvParser = new TextFieldParser(path, System.Text.Encoding.GetEncoding(Encoding)))
+
+            // Fix the course List
+            using (TextFieldParser csvParser = new TextFieldParser(new System.IO.StringReader(FixCourseList.Fix(path))))
             {
                 csvParser.SetDelimiters(";");
                 csvParser.HasFieldsEnclosedInQuotes = true;

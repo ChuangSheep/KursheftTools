@@ -191,6 +191,7 @@
     <Compile Include="CSVUtils.cs" />
     <Compile Include="DateTimeClacUtils.cs" />
     <Compile Include="Daynote.cs" />
+    <Compile Include="FixCourseList.cs" />
     <Compile Include="FormAbout.cs">
       <SubType>Form</SubType>
     </Compile>
