@@ -87,7 +87,7 @@ namespace KursheftTools
 
             for (byte i = 0; i < 2; i++)
             {
-                if (holidays[i, 1] < holidays[i, 0] || (DateTime.Compare(periods[2 * i + 1], new DateTime()) != 0 && holidays[i, 1] > periods[2 * i + 1]))
+                if (holidays[i, 1] < holidays[i, 0])
                 {
                     DialogResult = DialogResult.None;
                     textBoxHolidays[i].BackColor = RED;
