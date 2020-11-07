@@ -312,7 +312,7 @@ namespace KursheftTools
             PdfDocument document = new PdfDocument();
             foreach (string pdfFile in pdfs)
             {
-                if (pdfFile.Contains("merged")) continue;
+                if (pdfFile.Contains("merged") || !_grades.Contains(pdfFile.Split('-')[pdfFile.Split('-').Length - 1].Substring(0, 2))) continue;
                 PdfDocument inputPDFDocument = PdfReader.Open(pdfFile, PdfDocumentOpenMode.Import);
                 document.Version = inputPDFDocument.Version;
                 foreach (PdfPage page in inputPDFDocument.Pages)

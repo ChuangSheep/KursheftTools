@@ -76,7 +76,7 @@ namespace KursheftTools
         {
             DateTime dtNow = DateTime.Now;
             string fileName = $"{this._courseName}-{this._teacher}-{this._className}";
-            string title1 = $"Jahrgangstufe {this._className.Substring(0,2)}.{DateTimeCalcUtils.GetHalfYearAsNumber(dtNow)}    {DateTimeCalcUtils.GetHalfYear(dtNow)}";
+            string title1 = $"Jahrgangstufe {this._className.Substring(0,2)}.{DateTimeCalcUtils.GetHalfYearAsNumber(_lines[0].GetDate())}    {DateTimeCalcUtils.GetHalfYear(_lines[0].GetDate())}";
             string title2 = $"Sollstunde für Kurs  {this._courseName}-{this._teacher}-{this._className}";
             const string columnTitle1 = "Tag";
             const string columnTitle2 = "Datum";
