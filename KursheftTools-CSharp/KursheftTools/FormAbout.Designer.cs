@@ -86,7 +86,7 @@
             this.DateL.Name = "DateL";
             this.DateL.Size = new System.Drawing.Size(89, 17);
             this.DateL.TabIndex = 5;
-            this.DateL.Text = "Okt. 2020";
+            this.DateL.Text = "Nov. 2020";
             // 
             // ContactLL
             // 
