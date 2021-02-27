@@ -66,12 +66,11 @@ namespace KursheftTools
                 Filter = "Kursliste (*.csv, *.txt)|*.csv;*.txt"
             })
             {
-
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
                     string coursePlanPath = openFileDialog.FileName;
                     //set the names of the columns in the datatable CoursePlan CHANGE IF THE FORMAT IS CHANGED
-                    string[] columnNames = new string[9] { "CourseNumber", "Class", "Teacher", "Subject", "Room", "Weekday", "Hour", "U/G", "" };
+                    string[] columnNames = new string[9] { "CourseNumber", "Class", "Teacher", "Subject", "Room", "Weekday", "Hour", "", "" };
                     _coursePlan = CSVUtils.ImportCSVasDT(coursePlanPath, "Course Plan", false, columnNames);
                     MessageBox.Show("Der Kursplan wurde importiert.", "Erfolg", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }

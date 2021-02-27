@@ -121,22 +121,17 @@ namespace KursheftTools
                 //Change the following if there is more or less classes
                 this._grades = gradesToExport;
                 List<string> grds = new List<string>();
-                string[] Classes = new string[5] { "a", "b", "c", "d", "e" };
+                char[] CLASSES = Enumerable.Range(0,26).Select(i => (char)(i+'a')).ToArray();
                 // Added single grade to process the course for the whole grade
                 // i.e. all courses except d, e and m in EF
                 // Refer to fixCourseList.py for detail
                 grds.AddRange(gradesToExport);
                 foreach (string s in gradesToExport)
                 {
-                    foreach (string cls in Classes)
+                    foreach (char cls in CLASSES)
                     {
                         grds.Add(s + cls);
                     }
-                    if (s == "EF")
-                    {
-                        grds.Add(s + "f");
-                    }
-
                 }
                 _PDFClasses = grds.ToArray();
 
@@ -220,6 +215,7 @@ namespace KursheftTools
                                 int indexOfRow = Array.IndexOf(currentCourse, row);
 
                                 //If this row does not contain any number or any class
+                                // TODO
                                 if (string.IsNullOrEmpty((string)row.ItemArray[0]) || string.IsNullOrEmpty((string)row.ItemArray[1])) continue;
                                 //If this is the first line or the dates are not the same
                                 if (indexOfRow == 0 ||

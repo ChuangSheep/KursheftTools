@@ -55,7 +55,7 @@
             this.VersionL.Name = "VersionL";
             this.VersionL.Size = new System.Drawing.Size(143, 17);
             this.VersionL.TabIndex = 1;
-            this.VersionL.Text = "Version 1.0.3.0";
+            this.VersionL.Text = "Version 1.0.3.1";
             // 
             // LicenseRTB
             // 
@@ -86,7 +86,7 @@
             this.DateL.Name = "DateL";
             this.DateL.Size = new System.Drawing.Size(89, 17);
             this.DateL.TabIndex = 5;
-            this.DateL.Text = "Nov. 2020";
+            this.DateL.Text = "Feb. 2021";
             // 
             // ContactLL
             // 
