@@ -26,18 +26,18 @@ namespace KursheftTools
                     if (lines[i].IndexOf("Q1") == -1 && lines[i].IndexOf("Q2") == -1)
                     {
                         // cols: KursNum | Stufe | Lehrer | Fach | Raum | Tag | Stunde | Unused
-                        string[] lineInfos = lines[i].Split(';').Select(s => s.Trim()).ToArray();
+                        string[] lineInfos = lines[i].Split(';').Select(s => new string((from c in s.Trim()
+                                                                                         where c != '"'
+                                                                                         select c).ToArray())).ToArray();
 
                         // Spezial Fall fuer EF in Englisch, Mathe und Deutsch
-                        if (lines[i].IndexOf("EF") != -1)
+                        if (lineInfos[1] != "EF")
                         {
                             foreach (char cls in CLASSES)
                             {
                                 // Fuer Deutsch, Englisch oder Mathe
                                 // Nur speichern den Kurs der eigenen Klasse
-                                if (lines[i].IndexOf(("\"d" + cls)) != -1 ||
-                                  lines[i].IndexOf(("\"e" + cls)) != -1 ||
-                                  lines[i].IndexOf(("\"m" + cls)) != -1)
+                                if (lineInfos[3].Length == 2 && new List<string>() { "d"+cls, "e"+cls, "m"+cls }.Contains(lineInfos[3]))
                                 {
                                     // Ist es nun nicht die eigene Klasse
                                     if (lineInfos[1] != ("EF" + cls.ToString().ToLower()))
@@ -49,8 +49,16 @@ namespace KursheftTools
                                 }
                             }
                         }
+                        // Entfernen die Zeilen, die mit einer Stufe EF stehen
+                        // Falls diese Eigenschaft stabil ist,
+                        // Kann man den obigen Code abschaffen
+                        else
+                        {
+                            toDelete.Add(lines[i]);
+                            processed = true;
+                        }
 
-                        // Entweder nicht EF, oder geht es nicht um D, M oder E
+                        // Ausser D, M oder E
                         if (!processed)
                         {
                             // Fuer ungueltige Data

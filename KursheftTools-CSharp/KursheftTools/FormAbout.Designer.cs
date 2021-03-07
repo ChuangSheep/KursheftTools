@@ -35,6 +35,7 @@
             this.DateL = new System.Windows.Forms.Label();
             this.ContactLL = new System.Windows.Forms.LinkLabel();
             this.GithubL = new System.Windows.Forms.LinkLabel();
+            this.label1 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // CopyrightNameL
@@ -55,7 +56,7 @@
             this.VersionL.Name = "VersionL";
             this.VersionL.Size = new System.Drawing.Size(143, 17);
             this.VersionL.TabIndex = 1;
-            this.VersionL.Text = "Version 1.0.3.1";
+            this.VersionL.Text = "Version 1.0.3.2";
             // 
             // LicenseRTB
             // 
@@ -106,11 +107,22 @@
             this.GithubL.TabIndex = 7;
             this.GithubL.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.GithubL_LinkClicked);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("SimSun", 10.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
+            this.label1.Location = new System.Drawing.Point(32, 88);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(197, 17);
+            this.label1.TabIndex = 8;
+            this.label1.Text = "Some Rights Reserved.";
+            // 
             // FormAbout
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(648, 416);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.GithubL);
             this.Controls.Add(this.ContactLL);
             this.Controls.Add(this.DateL);
@@ -141,5 +153,6 @@
         private System.Windows.Forms.Label DateL;
         private System.Windows.Forms.LinkLabel ContactLL;
         private System.Windows.Forms.LinkLabel GithubL;
+        private System.Windows.Forms.Label label1;
     }
 }
