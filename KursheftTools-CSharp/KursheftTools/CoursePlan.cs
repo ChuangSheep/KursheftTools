@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System;
 using Excel = Microsoft.Office.Interop.Excel;
-using System.CodeDom;
+using System.Linq;
 
 namespace KursheftTools
 {
@@ -87,13 +87,13 @@ namespace KursheftTools
             XGraphics xGps = XGraphics.FromPdfPage(page);
 
             #region Preset Format
-            const double ROWS = 60;
+            const double ROWS = 70;
             //double SMALLWEEKDAYRECTWIDTH = Formats.getPixel(5);
             double SMALLDAYRECTWIDTH = Formats.GetPixel(10);
             double SMALLDATERECTWIDTH = Formats.GetPixel(20);
             double SMALLNOTERECTWIDTH = Formats.GetPixel(55);
             double SMALLRECTHEIGHT = Formats.GetPixel(3.6);
-            double TOPHEIGHT = Formats.GetPixel(28);
+            double TOPHEIGHT = Formats.GetPixel(21);
             double LEFTBLANK = Formats.GetPixel(10);
             double CENTERBLANK = Formats.GetPixel(20);
             //double RIGHTBLANK = Formats.getPixel(10);
@@ -106,18 +106,20 @@ namespace KursheftTools
             #region Preset Text Format 
             XFont boldFont = new XFont("Times New Roman", 7.5, XFontStyle.Bold);
             XFont regularFont = new XFont("Times New Roman", 7.5);
-            XFont titleFont = new XFont("Times New Roman", 14, XFontStyle.Bold);
-            XFont subtitleFont = new XFont("Times New Roman", 10, XFontStyle.Bold);
+            XFont titleFont = new XFont("Times New Roman", 12, XFontStyle.Bold);
+            XFont subtitleFont = new XFont("Times New Roman", 9, XFontStyle.Bold);
             XFont smallNoteFont = new XFont("Times New Roman", 6.5);
             XTextFormatter xtf = new XTextFormatter(xGps);
             XBrush[] brushes = new XBrush[2] { new XSolidBrush(XColor.FromArgb(230, 230, 230)), new XSolidBrush(XColor.FromArgb(210, 210, 210)) };
             XPen pen = new XPen(XColors.Gray, 0.5);
-            XPen darkPen = new XPen(XColors.Black, 1);
+            XPen darkPen = new XPen(XColors.Black, 0.8);
             #endregion
 
             //If the data is too long or too short
-            if (this._lines.Count > ROWS * 2) throw new ArgumentException("the weeklyplan is too long: " + this._lines.Count + " : " + this._courseName + this._className + this._teacher);
-            else if (_lines.Count < 3) throw new ArgumentException("the weeklyplan is too short: " + this._lines.Count + " course: " + this._courseName + this._className + this._teacher);
+            if (this._lines.Count > ROWS) 
+                throw new ArgumentException($"The weeklyplan is too long: {_lines.Count}. \nAt: {_courseName}-{_className}-{_teacher}");
+            else if (_lines.Count < 3) 
+                throw new ArgumentException($"The weeklyplan is too short: {_lines.Count}. \nAt: {_courseName}-{_className}-{_teacher}");
 
             #region Points
 
@@ -139,16 +141,16 @@ namespace KursheftTools
             #region HEAD
 
             //Set the titles
-            XRect rectTitle = new XRect(Formats.GetPixel(10), Formats.GetPixel(5), Formats.GetPixel(85), Formats.GetPixel(7));
+            XRect rectTitle = new XRect(Formats.GetPixel(10), Formats.GetPixel(3), Formats.GetPixel(85), Formats.GetPixel(5));
             xGps.DrawString(title1, titleFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
 
-            rectTitle = new XRect(Formats.GetPixel(10), Formats.GetPixel(12), Formats.GetPixel(85), Formats.GetPixel(7));
+            rectTitle = new XRect(Formats.GetPixel(10), Formats.GetPixel(8), Formats.GetPixel(85), Formats.GetPixel(5));
             xGps.DrawString(title2, titleFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
 
-            rectTitle = new XRect(smallRectStartCo[3].X, Formats.GetPixel(5), Formats.GetPixel(85), Formats.GetPixel(7));
+            rectTitle = new XRect(smallRectStartCo[3].X, Formats.GetPixel(3), Formats.GetPixel(85), Formats.GetPixel(5));
             xGps.DrawString(title1, titleFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
 
-            rectTitle = new XRect(smallRectStartCo[3].X, Formats.GetPixel(12), Formats.GetPixel(85), Formats.GetPixel(7));
+            rectTitle = new XRect(smallRectStartCo[3].X, Formats.GetPixel(8), Formats.GetPixel(85), Formats.GetPixel(5));
             xGps.DrawString(title2, titleFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
 
             // column titles
@@ -236,12 +238,12 @@ namespace KursheftTools
 
 
             rect = new XRect(smallRectStartCo[0].X, smallRectStartCo[0].Y + Formats.GetPixel(1), SMALLNOTERECTWIDTH + SMALLDATERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[0].Y + SMALLRECTHEIGHT / 2));
-            xGps.DrawString($"1. Kursabschnitt: {periods[0]:dd.MM.yyyy} - {periods[1]:dd.MM.yyyy}", regularFont, XBrushes.Black, rect, XStringFormats.TopLeft);
-            smallRectStartCo[0].Y += SMALLRECTHEIGHT / 2 + Formats.GetPixel(2);
+            xGps.DrawString($"1. Kursabschnitt: {periods[0]:dd.MM.yyyy} - {periods[1]:dd.MM.yyyy}", smallNoteFont, XBrushes.Black, rect, XStringFormats.TopLeft);
+            smallRectStartCo[0].Y += SMALLRECTHEIGHT / 2 + Formats.GetPixel(1);
             rect = new XRect(smallRectStartCo[0].X, smallRectStartCo[0].Y + Formats.GetPixel(1), SMALLNOTERECTWIDTH + SMALLDATERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[0].Y + SMALLRECTHEIGHT / 2));
-            xGps.DrawString($"2. Kursabschnitt: {periods[2]:dd.MM.yyyy} - {periods[3]:dd.MM.yyyy}", regularFont, XBrushes.Black, rect, XStringFormats.TopLeft);
+            xGps.DrawString($"2. Kursabschnitt: {periods[2]:dd.MM.yyyy} - {periods[3]:dd.MM.yyyy}", smallNoteFont, XBrushes.Black, rect, XStringFormats.TopLeft);
 
-            smallRectStartCo[0].Y += SMALLRECTHEIGHT / 2 + Formats.GetPixel(6);
+            smallRectStartCo[0].Y += SMALLRECTHEIGHT / 2 + Formats.GetPixel(3);
             rect = new XRect(smallRectStartCo[0].X, smallRectStartCo[0].Y + Formats.GetPixel(1), SMALLNOTERECTWIDTH + SMALLDATERECTWIDTH, Formats.A4.pixelHeight - (smallRectStartCo[0].Y + SMALLRECTHEIGHT / 2));
             xtf.DrawString(OUTPUT, smallNoteFont, XBrushes.Black, rect, XStringFormats.TopLeft);
 
@@ -382,8 +384,11 @@ namespace KursheftTools
                     if (k < dates.Length - 1) k++;
                     else k = 0;
                 }
-
             }
+
+            string secondHoliday = $"bis {holidays[1, 1]:dd.MM.yyyy} {DateTimeCalcUtils.GetHolidayType(holidays[1, 0])}";
+            if (!_lines.Last().GetNotes().Contains(secondHoliday))
+                _lines.Last().AddNote(secondHoliday);
         }
 
 

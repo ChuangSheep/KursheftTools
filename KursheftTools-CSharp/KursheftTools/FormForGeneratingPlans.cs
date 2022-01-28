@@ -283,11 +283,19 @@ namespace KursheftTools
                 {
                     CoursePlan currentCoursePlan = plans[i];
                     currentCoursePlan.ReadNoteBoard(_noteBoard, dates[i], isRegular[i], _holidays);
+
                     //After all the note board processed
                     //Export the current course plan
-                    _ = currentCoursePlan.ExportAsPDF(_periods, _PDFStorePath);
-                    CurrentInfo = $"{currentCoursePlan.GetTitle()} wurde exportiert. ";
-                    ExportedPDFs++;
+                    try
+                    {
+                        _ = currentCoursePlan.ExportAsPDF(_periods, _PDFStorePath);
+                        CurrentInfo = $"{currentCoursePlan.GetTitle()} wurde exportiert. ";
+                        ExportedPDFs++;
+                    }
+                    catch (ArgumentException e)
+                    {
+                        MessageBox.Show(e.Message, "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
+                    }
                 }
 
             }
