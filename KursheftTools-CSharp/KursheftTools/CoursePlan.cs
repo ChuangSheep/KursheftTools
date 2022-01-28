@@ -292,7 +292,7 @@ namespace KursheftTools
             //Initialize the counter
             int k = 0;
             //Traverse the note board
-            for (int i = 3; i < noteBoard.UsedRange.Rows.Count - 1; i++)
+            for (int i = 3; i < noteBoard.UsedRange.Rows.Count; i++)
             {
                 //Jump the title lines
                 if (((Excel.Range)noteBoard.Cells[i, 2]).Text == "Anfang d. 2. Abschnitts" || ((Excel.Range)noteBoard.Cells[i, 2]).Text == "Ende des Schuljahres" || ((Excel.Range)noteBoard.Cells[i, 2]).Text == "") continue;
