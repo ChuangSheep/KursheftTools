@@ -219,7 +219,7 @@ namespace KursheftTools
                                 if (string.IsNullOrEmpty((string)row.ItemArray[0]) || string.IsNullOrEmpty((string)row.ItemArray[1])) continue;
                                 //If this is the first line or the dates are not the same
                                 if (indexOfRow == 0 ||
-                                    DateTime.Compare(DateTimeCalcUtils.GetNearestWeekdayS(_periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString(), DEUTSCHCULT))), currentDT.Last()) != 0)
+                                    !currentDT.Contains(DateTimeCalcUtils.GetNearestWeekdayS(_periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString(), DEUTSCHCULT)))))
                                 {
                                     currentDT.Add(DateTimeCalcUtils.GetNearestWeekdayS(_periods[0], DateTimeCalcUtils.GetWeekdayFromNumber(int.Parse(currentCourse[indexOfRow].ItemArray[5].ToString(), DEUTSCHCULT))));
 
