@@ -46,7 +46,7 @@
             this.CopyrightNameL.Name = "CopyrightNameL";
             this.CopyrightNameL.Size = new System.Drawing.Size(269, 17);
             this.CopyrightNameL.TabIndex = 0;
-            this.CopyrightNameL.Text = "Copyright (c) 2020 Chuyang W.";
+            this.CopyrightNameL.Text = "Copyright (c) 2022 Chuyang W.";
             // 
             // VersionL
             // 
@@ -56,7 +56,7 @@
             this.VersionL.Name = "VersionL";
             this.VersionL.Size = new System.Drawing.Size(143, 17);
             this.VersionL.TabIndex = 1;
-            this.VersionL.Text = "Version 1.0.3.2";
+            this.VersionL.Text = "Version 1.0.4.0";
             // 
             // LicenseRTB
             // 
@@ -87,14 +87,14 @@
             this.DateL.Name = "DateL";
             this.DateL.Size = new System.Drawing.Size(89, 17);
             this.DateL.TabIndex = 5;
-            this.DateL.Text = "Feb. 2021";
+            this.DateL.Text = "Jan. 2022";
             // 
             // ContactLL
             // 
             this.ContactLL.AutoSize = true;
             this.ContactLL.Location = new System.Drawing.Point(35, 362);
             this.ContactLL.Name = "ContactLL";
-            this.ContactLL.Size = new System.Drawing.Size(0, 17);
+            this.ContactLL.Size = new System.Drawing.Size(0, 16);
             this.ContactLL.TabIndex = 6;
             this.ContactLL.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.ContactLL_LinkClicked);
             // 
@@ -103,7 +103,7 @@
             this.GithubL.AutoSize = true;
             this.GithubL.Location = new System.Drawing.Point(35, 387);
             this.GithubL.Name = "GithubL";
-            this.GithubL.Size = new System.Drawing.Size(0, 17);
+            this.GithubL.Size = new System.Drawing.Size(0, 16);
             this.GithubL.TabIndex = 7;
             this.GithubL.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.GithubL_LinkClicked);
             // 
