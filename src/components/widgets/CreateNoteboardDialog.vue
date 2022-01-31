@@ -47,8 +47,23 @@
             </v-col>
           </v-row>
         </v-container>
-        <v-card-actions class="px-6 pb-4 pt-6"
-          ><v-spacer></v-spacer
+        <v-card-actions class="pr-6 pl-10 pb-6 pt-4">
+          <comfirmation-dialog
+            v-if="hasData"
+            activatorText="Bemerkungsbogen löschen"
+            activatorColor="error"
+            yesText="Ja, den Bogen unwiderruflich löschen"
+            @accept="onBoardDelete(dialogResult)"
+          >
+            <template slot="content">
+              <v-card-text
+                >Wollen Sie den Bemerkungsbogen wirklich löschen?<b>
+                  Das kann nicht rückgängig gamacht werden.</b
+                >
+              </v-card-text></template
+            ></comfirmation-dialog
+          >
+          <v-spacer></v-spacer
           ><v-btn color="primary" @click="onNoteboardChange(dialogResult)"
             >Bestätigen</v-btn
           >
@@ -63,8 +78,13 @@
 <script>
 import DateUtils from "@/logic/DateUtils.js";
 
+import ComfirmationDialog from "./ComfirmationDialog.vue";
+
 export default {
   name: "CreateNoteboardDialog",
+  components: {
+    ComfirmationDialog,
+  },
   props: {
     hasData: {
       required: true,
@@ -76,8 +96,8 @@ export default {
         return [
           { name: "1. Abschnitt", start: "", end: "" },
           { name: "2. Abschnitt", start: "", end: "" },
-          { name: "1. Ferien", start: "", end: "" },
-          { name: "2. Ferien", start: "", end: "" },
+          { name: "1. Ferienphase", start: "", end: "" },
+          { name: "2. Ferienphase", start: "", end: "" },
         ];
       },
     },
@@ -113,6 +133,10 @@ export default {
         if (entry.start !== true || entry.end !== true) return false;
       }
       return true;
+    },
+    onBoardDelete(dialogResult) {
+      this.$emit("delete");
+      dialogResult.value = false;
     },
   },
   computed: {

@@ -7,40 +7,27 @@
         :initDates="dates"
         @create="onNewBoardCreate"
         @update="onNewBoardUpdate"
+        @delete="onBoardDelete"
       />
 
       <!-- Import new board -->
-      <v-dialog v-if="hasData" max-width="500px">
-        <template v-slot:activator="{ on, attrs }">
-          <v-btn class="mr-6" v-on="on" v-bind="attrs">Importieren</v-btn>
-        </template>
-        <template v-slot:default="dialogResult">
-          <v-card>
-            <v-card-title>Warnung</v-card-title>
-            <v-card-text class="black--text"
-              >Wenn Sie einen anderen Bemerkungsbogen importieren,
-              <b>verlieren Sie hier alle Daten</b>, die Sie nicht gespeichert
-              haben.
-            </v-card-text>
-            <v-card-text class="black--text" style="margin-top: -10px">
-              Sind Sie sicher?
-            </v-card-text>
-            <v-card-actions class="pb-4"
-              ><v-btn
-                @click="
-                  $refs.import.click();
-                  dialogResult.value = false;
-                "
-                class="mr-3"
-                color="error"
-                >Ja, Änderungen verwerfen</v-btn
-              ><v-btn @click="dialogResult.value = false"
-                >Nein</v-btn
-              ></v-card-actions
-            >
-          </v-card>
-        </template>
-      </v-dialog>
+      <comfirmation-dialog
+        v-if="hasData"
+        maxWidth="500px"
+        yesText="Ja, Änderungen verwerfen"
+        activatorText="Importieren"
+        @accept="$refs.import.click()"
+        ><template slot="content">
+          <v-card-text class="black--text"
+            >Wenn Sie einen anderen Bemerkungsbogen importieren,
+            <b>verlieren Sie hier alle Daten</b>, die Sie nicht gespeichert
+            haben.
+          </v-card-text>
+          <v-card-text class="black--text" style="margin-top: -10px">
+            Sind Sie sicher?
+          </v-card-text>
+        </template></comfirmation-dialog
+      >
       <v-btn class="mr-6" @click="$refs.import.click()" v-else
         >Importieren</v-btn
       >
@@ -117,6 +104,7 @@ import DateUtils from "@/logic/DateUtils.js";
 import { Term } from "@/models/Term";
 
 import CreateNoteboardDialog from "./widgets/CreateNoteboardDialog.vue";
+import ComfirmationDialog from "./widgets/ComfirmationDialog.vue";
 import DaynoteEntry from "./DaynoteEntry.vue";
 
 export default {
@@ -124,27 +112,14 @@ export default {
   components: {
     DaynoteEntry,
     CreateNoteboardDialog,
+    ComfirmationDialog,
   },
   data() {
     return {
       dateUtils: DateUtils,
-      hasData: true,
-      terms: [
-        new Term(new Date(2022, 1, 1), new Date(2022, 1, 7)),
-        new Term(new Date(2022, 1, 8), new Date(2022, 1, 14)),
-      ],
-      holidays: [
-        {
-          type: 1,
-          start: new Date(2022, 1, 1, 12),
-          end: new Date(2022, 1, 2, 12),
-        },
-        {
-          type: 2,
-          start: new Date(2022, 1, 3, 12),
-          end: new Date(2022, 1, 4, 12),
-        },
-      ],
+      hasData: false,
+      terms: [],
+      holidays: [],
     };
   },
   methods: {
@@ -158,13 +133,13 @@ export default {
           this.$set(this.holidays, i, {
             start: new Date(entry.start),
             end: new Date(entry.end),
-            type: entry.type,
           });
         }
         for (let i = 0; i < data.terms.length; i++) {
           const entry = data.terms[i];
           this.$set(this.terms, i, Term.fromJSON(entry));
         }
+        this.hasData = true;
       }
       // must play with dom to remove the pending file
       document.getElementById("noteboard-file").value = "";
@@ -197,8 +172,14 @@ export default {
       }
 
       this.holidays = [
-        { type: 1, start: dates[2].start, end: dates[2].end },
-        { type: 2, start: dates[3].start, end: dates[3].end },
+        {
+          start: new Date(dates[2].start),
+          end: new Date(dates[2].end),
+        },
+        {
+          start: new Date(dates[3].start),
+          end: new Date(dates[3].end),
+        },
       ];
       for (let i = 0; i < this.holidays.length; i++) {
         this.holidays[i].start.setHours(12);
@@ -220,12 +201,10 @@ export default {
 
       this.holidays = [
         {
-          type: 1,
           start: new Date(dates[2].start),
           end: new Date(dates[2].end),
         },
         {
-          type: 2,
           start: new Date(dates[3].start),
           end: new Date(dates[3].end),
         },
@@ -236,6 +215,11 @@ export default {
       }
 
       this.updateStorage();
+    },
+    onBoardDelete() {
+      this.hasData = false;
+      this.holidays = [];
+      this.terms = [];
     },
     onNoteUpdate(i) {
       console.log(i);
@@ -248,6 +232,12 @@ export default {
       return { holidays: this.holidays, terms: this.terms };
     },
     fetchSavedBoard() {
+      const hasData = localStorage.getItem("kht.hasData");
+      if (hasData !== "true") {
+        this.hasData = false;
+        return false;
+      }
+
       const res = localStorage.getItem("kht.noteboard");
       if (res !== null) {
         const data = JSON.parse(res);
@@ -262,10 +252,14 @@ export default {
           const entry = data.terms[i];
           this.$set(this.terms, i, Term.fromJSON(entry));
         }
-      }
+
+        this.hasData = true;
+        return true;
+      } else return false;
     },
     updateStorage() {
       console.log("changed");
+      localStorage.setItem("kht.hasData", this.hasData);
       localStorage.setItem(
         "kht.noteboard",
         JSON.stringify(this.generateFullData())
@@ -274,41 +268,43 @@ export default {
   },
   computed: {
     dates() {
-      return [
-        {
-          name: "1. Abschnitt",
-          start: DateUtils.toNormalString(this.terms[0].termStart),
-          end: DateUtils.toNormalString(this.terms[0].termEnd),
-        },
-        {
-          name: "2. Abschnitt",
-          start: DateUtils.toNormalString(this.terms[1].termStart),
-          end: DateUtils.toNormalString(this.terms[1].termEnd),
-        },
-        {
-          name: "1. Ferien",
-          start: DateUtils.toNormalString(this.holidays[0].start),
-          end: DateUtils.toNormalString(this.holidays[0].end),
-        },
-        {
-          name: "2. Ferien",
-          start: DateUtils.toNormalString(this.holidays[1].start),
-          end: DateUtils.toNormalString(this.holidays[1].end),
-        },
+      const res = [
+        { name: "1. Abschnitt", start: "", end: "" },
+        { name: "2. Abschnitt", start: "", end: "" },
+        { name: "1. Ferienphase", start: "", end: "" },
+        { name: "2. Ferienphase", start: "", end: "" },
       ];
+
+      if (this.terms.length == 2 && this.terms[0] instanceof Term) {
+        for (let i = 0; i < this.terms.length; i++) {
+          const e = this.terms[i];
+          res[i].start = DateUtils.toNormalString(e.termStart);
+          res[i].end = DateUtils.toNormalString(e.termEnd);
+        }
+      }
+
+      if (this.holidays.length == 2 && this.holidays[0].start) {
+        for (let i = 0; i < this.holidays.length; i++) {
+          const e = this.holidays[i];
+          res[i + 2].start = DateUtils.toNormalString(e.start);
+          res[i + 2].end = DateUtils.toNormalString(e.end);
+        }
+      }
+      return res;
     },
   },
   watch: {
     terms: {
-      immediate: true,
       handler() {
         this.updateStorage();
       },
     },
   },
   mounted() {
-    this.terms[0].fillDays();
-    this.terms[1].fillDays();
+    if (this.fetchSavedBoard()) {
+      this.terms[0].fillDays();
+      this.terms[1].fillDays();
+    }
   },
 };
 </script>
@@ -365,5 +361,16 @@ export default {
 //               ],
 //             },
 //           ],
+//         },
+//       ],
+
+//  holidays: [
+//         {
+//           start: new Date(2022, 1, 1, 12),
+//           end: new Date(2022, 1, 2, 12),
+//         },
+//         {
+//           start: new Date(2022, 1, 3, 12),
+//           end: new Date(2022, 1, 4, 12),
 //         },
 //       ],
