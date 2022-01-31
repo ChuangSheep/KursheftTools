@@ -11,6 +11,8 @@ Release/
 bin/
 obj/
 
+.vs/
+
 #Ignore the release folder
 Releases/
 

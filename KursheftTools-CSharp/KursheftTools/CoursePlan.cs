@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System;
 using Excel = Microsoft.Office.Interop.Excel;
 using System.Linq;
+using System.Globalization;
 
 namespace KursheftTools
 {
@@ -76,7 +77,7 @@ namespace KursheftTools
         {
             DateTime dtNow = DateTime.Now;
             string fileName = $"{this._courseName}-{this._teacher}-{this._className}";
-            string title1 = $"Jahrgangstufe {this._className.Substring(0,2)}.{DateTimeCalcUtils.GetHalfYearAsNumber(_lines[0].GetDate())}    {DateTimeCalcUtils.GetHalfYear(_lines[0].GetDate())}";
+            string title1 = $"Jahrgangstufe {this._className.Substring(0, 2)}.{DateTimeCalcUtils.GetHalfYearAsNumber(_lines[0].GetDate())}    {DateTimeCalcUtils.GetHalfYear(_lines[0].GetDate())}";
             string title2 = $"Sollstunde für Kurs  {this._courseName}-{this._teacher}-{this._className}";
             const string columnTitle1 = "Tag";
             const string columnTitle2 = "Datum";
@@ -99,7 +100,7 @@ namespace KursheftTools
             //double RIGHTBLANK = Formats.getPixel(10);
             double OFFSET = Formats.GetPixel(0.6);
             //IN PIXEL
-            XPoint[] smallRectStartCo = new XPoint[6] { new XPoint(),new XPoint(),new XPoint(), new XPoint(), new XPoint(), new XPoint() };
+            XPoint[] smallRectStartCo = new XPoint[6] { new XPoint(), new XPoint(), new XPoint(), new XPoint(), new XPoint(), new XPoint() };
 
             #endregion
 
@@ -116,9 +117,9 @@ namespace KursheftTools
             #endregion
 
             //If the data is too long or too short
-            if (this._lines.Count > ROWS) 
+            if (this._lines.Count > ROWS)
                 throw new ArgumentException($"The weeklyplan is too long: {_lines.Count}. \nAt: {_courseName}-{_className}-{_teacher}");
-            else if (_lines.Count < 3) 
+            else if (_lines.Count < 3)
                 throw new ArgumentException($"The weeklyplan is too short: {_lines.Count}. \nAt: {_courseName}-{_className}-{_teacher}");
 
             #region Points
@@ -160,7 +161,7 @@ namespace KursheftTools
             xGps.DrawString(columnTitle2, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
             rectTitle = new XRect(new XPoint(smallRectStartCo[2].X, smallRectStartCo[0].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[2].X + SMALLNOTERECTWIDTH, smallRectStartCo[2].Y));
             xGps.DrawString(columnTitle3, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
-            
+
             rectTitle = new XRect(new XPoint(smallRectStartCo[3].X, smallRectStartCo[3].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[3].X, smallRectStartCo[3].Y));
             xGps.DrawString(columnTitle1, boldFont, XBrushes.Black, rectTitle, XStringFormats.TopLeft);
             rectTitle = new XRect(new XPoint(smallRectStartCo[4].X, smallRectStartCo[3].Y - SMALLRECTHEIGHT - 5), new XPoint(smallRectStartCo[4].X, smallRectStartCo[3].Y));
@@ -192,22 +193,22 @@ namespace KursheftTools
                 smallRectStartCo[2].Y += SMALLRECTHEIGHT;
             }
             //The second column
-                for (int i = 0; i < _lines.Count && i < ROWS; i++)
-                {
-                    //The color
-                    if (i % 2 != 0) xGps.DrawRectangle(brushes[0], new XRect(new XPoint(smallRectStartCo[3].X, smallRectStartCo[3].Y - OFFSET), new XPoint(smallRectStartCo[5].X + SMALLNOTERECTWIDTH, smallRectStartCo[5].Y + SMALLRECTHEIGHT - OFFSET)));
-                    else xGps.DrawRectangle(brushes[1], new XRect(new XPoint(smallRectStartCo[3].X, smallRectStartCo[3].Y - OFFSET), new XPoint(smallRectStartCo[5].X + SMALLNOTERECTWIDTH, smallRectStartCo[5].Y + SMALLRECTHEIGHT - OFFSET)));
+            for (int i = 0; i < _lines.Count && i < ROWS; i++)
+            {
+                //The color
+                if (i % 2 != 0) xGps.DrawRectangle(brushes[0], new XRect(new XPoint(smallRectStartCo[3].X, smallRectStartCo[3].Y - OFFSET), new XPoint(smallRectStartCo[5].X + SMALLNOTERECTWIDTH, smallRectStartCo[5].Y + SMALLRECTHEIGHT - OFFSET)));
+                else xGps.DrawRectangle(brushes[1], new XRect(new XPoint(smallRectStartCo[3].X, smallRectStartCo[3].Y - OFFSET), new XPoint(smallRectStartCo[5].X + SMALLNOTERECTWIDTH, smallRectStartCo[5].Y + SMALLRECTHEIGHT - OFFSET)));
 
-                    rectCurrentLine = new XRect(smallRectStartCo[3], new XPoint(smallRectStartCo[4].X, smallRectStartCo[3].Y + SMALLRECTHEIGHT));
-                    xtf.DrawString(_lines[i].GetWeekdayS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
-                    rectCurrentLine = new XRect(smallRectStartCo[4], new XPoint(smallRectStartCo[5].X, smallRectStartCo[4].Y + SMALLRECTHEIGHT));
-                    xtf.DrawString(_lines[i].GetDateS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
-                    rectCurrentLine = new XRect(smallRectStartCo[5], new XPoint(smallRectStartCo[5].X + SMALLNOTERECTWIDTH, smallRectStartCo[5].Y + SMALLRECTHEIGHT));
-                    xtf.DrawString(_lines[i].GetNotes(), regularFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
+                rectCurrentLine = new XRect(smallRectStartCo[3], new XPoint(smallRectStartCo[4].X, smallRectStartCo[3].Y + SMALLRECTHEIGHT));
+                xtf.DrawString(_lines[i].GetWeekdayS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
+                rectCurrentLine = new XRect(smallRectStartCo[4], new XPoint(smallRectStartCo[5].X, smallRectStartCo[4].Y + SMALLRECTHEIGHT));
+                xtf.DrawString(_lines[i].GetDateS(), boldFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
+                rectCurrentLine = new XRect(smallRectStartCo[5], new XPoint(smallRectStartCo[5].X + SMALLNOTERECTWIDTH, smallRectStartCo[5].Y + SMALLRECTHEIGHT));
+                xtf.DrawString(_lines[i].GetNotes(), regularFont, XBrushes.Black, rectCurrentLine, XStringFormats.TopLeft);
 
-                    smallRectStartCo[3].Y += SMALLRECTHEIGHT;
-                    smallRectStartCo[4].Y += SMALLRECTHEIGHT;
-                    smallRectStartCo[5].Y += SMALLRECTHEIGHT;
+                smallRectStartCo[3].Y += SMALLRECTHEIGHT;
+                smallRectStartCo[4].Y += SMALLRECTHEIGHT;
+                smallRectStartCo[5].Y += SMALLRECTHEIGHT;
             }
 
             #endregion
@@ -220,7 +221,7 @@ namespace KursheftTools
             xGps.DrawLine(pen, smallRectStartCo[2].X - 15, TOPHEIGHT - Formats.GetPixel(5.5), smallRectStartCo[2].X - 15, smallRectStartCo[1].Y);
 
             xGps.DrawLine(darkPen, smallRectStartCo[3].X, TOPHEIGHT - 4, smallRectStartCo[5].X + SMALLNOTERECTWIDTH + 5, TOPHEIGHT - 4);
-            xGps.DrawLine(pen, smallRectStartCo[4].X -6, TOPHEIGHT - Formats.GetPixel(5), smallRectStartCo[4].X -6, smallRectStartCo[0].Y);
+            xGps.DrawLine(pen, smallRectStartCo[4].X - 6, TOPHEIGHT - Formats.GetPixel(5), smallRectStartCo[4].X - 6, smallRectStartCo[0].Y);
             xGps.DrawLine(pen, smallRectStartCo[5].X - 15, TOPHEIGHT - Formats.GetPixel(5.5), smallRectStartCo[5].X - 15, smallRectStartCo[1].Y);
 
 
@@ -293,30 +294,48 @@ namespace KursheftTools
             DateTimeCalcUtils.SortDate(ref dates, ref isRegular);
             //Initialize the counter
             int k = 0;
+
+            //Get the end of the term
+            var dateCell = noteBoard.Cells[1, 9] as Excel.Range;
+            DateTime endDate = DateTime.Parse((dateCell.Text as string).Split('~').Last(),
+                                              new CultureInfo("de-DE"),
+                                              DateTimeStyles.NoCurrentDateDefault);
+
             //Traverse the note board
             for (int i = 3; i < noteBoard.UsedRange.Rows.Count; i++)
             {
                 //Jump the title lines
-                if (((Excel.Range)noteBoard.Cells[i, 2]).Text == "Anfang d. 2. Abschnitts" || ((Excel.Range)noteBoard.Cells[i, 2]).Text == "Ende des Schuljahres" || ((Excel.Range)noteBoard.Cells[i, 2]).Text == "") continue;
+                if (((Excel.Range)noteBoard.Cells[i, 2]).Text == "Anfang d. 2. Abschnitts"
+                    || ((Excel.Range)noteBoard.Cells[i, 2]).Text == "")
+                    continue;
+                else if (((Excel.Range)noteBoard.Cells[i, 2]).Text == "Ende des Schuljahres")
+                    break;
+                else if (DateTime.Compare(dates[k], endDate) > 0) break;
 
                 // If the dates is in holiday, jump it
                 // Also add a daynote that says holiday until
                 // Use date of the holiday begin
-                bool inFirstHoliday = DateTime.Compare(dates[k], holidays[0, 0]) >= 0 && DateTime.Compare(dates[k], holidays[0, 1]) <= 0;
-                bool inSecondHoliday = DateTime.Compare(dates[k], holidays[1, 0]) >= 0 && DateTime.Compare(dates[k], holidays[1, 1]) <= 0;
+                bool inFirstHoliday = DateTime.Compare(dates[k], holidays[0, 0]) >= 0
+                                      && DateTime.Compare(dates[k], holidays[0, 1]) <= 0;
+                bool inSecondHoliday = DateTime.Compare(dates[k], holidays[1, 0]) >= 0
+                                       && DateTime.Compare(dates[k], holidays[1, 1]) <= 0;
                 if (inFirstHoliday || inSecondHoliday)
                 {
                     // Jump the holidays
                     // Not use +14 days because not every holiday has 14 days
                     for (int j = 0; j < dates.Length; j++)
                     {
-                        bool nowInFirstHoliday = DateTime.Compare(dates[j], holidays[0, 0]) >= 0 && DateTime.Compare(dates[j], holidays[0, 1]) <= 0;
-                        bool nowInSecondHoliday = DateTime.Compare(dates[j], holidays[1, 0]) >= 0 && DateTime.Compare(dates[j], holidays[1, 1]) <= 0;
+                        bool nowInFirstHoliday = DateTime.Compare(dates[j], holidays[0, 0]) >= 0
+                                                 && DateTime.Compare(dates[j], holidays[0, 1]) <= 0;
+                        bool nowInSecondHoliday = DateTime.Compare(dates[j], holidays[1, 0]) >= 0
+                                                  && DateTime.Compare(dates[j], holidays[1, 1]) <= 0;
                         while (nowInFirstHoliday || nowInSecondHoliday)
                         {
                             dates[j] = dates[j].AddDays(7);
-                            nowInFirstHoliday = DateTime.Compare(dates[j], holidays[0, 0]) >= 0 && DateTime.Compare(dates[j], holidays[0, 1]) <= 0;
-                            nowInSecondHoliday = DateTime.Compare(dates[j], holidays[1, 0]) >= 0 && DateTime.Compare(dates[j], holidays[1, 1]) <= 0;
+                            nowInFirstHoliday = DateTime.Compare(dates[j], holidays[0, 0]) >= 0
+                                                && DateTime.Compare(dates[j], holidays[0, 1]) <= 0;
+                            nowInSecondHoliday = DateTime.Compare(dates[j], holidays[1, 0]) >= 0
+                                                 && DateTime.Compare(dates[j], holidays[1, 1]) <= 0;
                         }
                     }
 
@@ -325,7 +344,7 @@ namespace KursheftTools
                     {
                         if (DateTime.Compare(dates[k], dates[j]) > 0)
                         {
-                            k = j; 
+                            k = j;
                             j = 0;
                         }
                     }
@@ -368,7 +387,9 @@ namespace KursheftTools
                             if (currentNote != null)
                             {
                                 //If the grade fits to the current course
-                                if (currentLineGrade == this._className || currentLineGrade == this.GetGrade() || string.IsNullOrEmpty(currentLineGrade))
+                                if (currentLineGrade == this._className
+                                    || currentLineGrade == this.GetGrade()
+                                    || string.IsNullOrEmpty(currentLineGrade))
                                 {
                                     currentDaynotes.AddNote(currentNote);
                                 }
@@ -386,9 +407,9 @@ namespace KursheftTools
                 }
             }
 
-            string secondHoliday = $"bis {holidays[1, 1]:dd.MM.yyyy} {DateTimeCalcUtils.GetHolidayType(holidays[1, 0])}";
-            if (!_lines.Last().GetNotes().Contains(secondHoliday))
-                _lines.Last().AddNote(secondHoliday);
+            // string secondHoliday = $"bis {holidays[1, 1]:dd.MM.yyyy} {DateTimeCalcUtils.GetHolidayType(holidays[1, 0])}";
+            // if (!_lines.Last().GetNotes().Contains(secondHoliday))
+            //     _lines.Last().AddNote(secondHoliday);
         }
 
 

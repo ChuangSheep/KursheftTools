@@ -12,6 +12,7 @@ namespace KursheftTools
 
         private void FormAbout_Load(object sender, EventArgs e)
         {
+            VersionL.Text = $"Version {System.Reflection.Assembly.GetExecutingAssembly().GetName().Version}";
             ContactLL.Text = "Found a bug or have suggesstions? Contact me at chuang__@outlook.com";
             ContactLL.Links.Add(48, 20, "mailto:chuang__@outlook.com?Subject=KursheftTools%20Feedback");
 
