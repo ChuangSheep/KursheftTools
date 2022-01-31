@@ -70,6 +70,7 @@
 
 <script>
 import { Term } from "@/models/Term";
+import PDFUtils from "@/logic/PDFUtils.js";
 
 export default {
   name: "BookExport",
@@ -89,11 +90,15 @@ export default {
       holidays: [],
       terms: [],
       courselist: [],
+      res: null,
     };
   },
   methods: {
     onGradesChange() {
-      if (!this.prevGrades.includes("Alle") && this.gradesToExport.includes("Alle"))
+      if (
+        !this.prevGrades.includes("Alle") &&
+        this.gradesToExport.includes("Alle")
+      )
         this.gradesToExport = ["Alle"];
       else if (
         this.prevGrades.includes("Alle") &&
@@ -105,6 +110,27 @@ export default {
     },
     onGenerate(dialogResult) {
       dialogResult.value = false;
+      PDFUtils.create(
+        this.holidays,
+        this.terms,
+        this.courselist,
+        this.gradesToExport,
+        () => {},
+        (blob) => {
+          const filename = `merged-${this.gradesToExport.join("-")}`;
+          if (window.navigator.msSaveOrOpenBlob) {
+            window.navigator.msSaveBlob(blob, filename);
+          } else {
+            const elem = window.document.createElement("a");
+            elem.href = window.URL.createObjectURL(blob, { oneTimeOnly: true });
+            elem.download = filename;
+            elem.style.display = "none";
+            document.body.appendChild(elem);
+            elem.click();
+            document.body.removeChild(elem);
+          }
+        }
+      );
     },
     fetchData() {
       {
@@ -146,6 +172,9 @@ export default {
         }
       }
     },
+  },
+  watch: {
+    res() {},
   },
   mounted() {
     this.fetchData();

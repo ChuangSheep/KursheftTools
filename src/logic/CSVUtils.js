@@ -43,7 +43,6 @@ let CSVUtils = {
       for (const grade of map) {
         for (const cls of grade[1]) {
           let days = [];
-          console.log(cls);
           for (const entry of cls[1]) {
             // find index of existing day
             let index = -1;
