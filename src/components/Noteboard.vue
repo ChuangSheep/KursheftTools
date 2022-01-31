@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-row justify="center">
+    <v-row>
       <!-- Create and edit the board -->
       <create-noteboard-dialog
         :hasData="hasData"
@@ -73,6 +73,7 @@
         ></v-col
       >
     </v-row>
+
     <!-- Otherwise, show the data view -->
     <v-row justify="space-between" class="mt-10" v-else>
       <v-col cols="12" sm="6" v-for="(data, i) in terms" :key="i">
@@ -89,6 +90,7 @@
             <daynote-entry
               :date="entry.date"
               :initNotes="entry.notes"
+              :allowedGrades="allowedGrades"
               @update="onNoteUpdate(j)"
               style="width: 100%"
             />
@@ -113,6 +115,14 @@ export default {
     DaynoteEntry,
     CreateNoteboardDialog,
     ComfirmationDialog,
+  },
+  props: {
+    allowedGrades: {
+      default() {
+        return ["Alle", "EF", "Q1", "Q2"];
+      },
+      type: Array,
+    },
   },
   data() {
     return {
@@ -232,7 +242,7 @@ export default {
       return { holidays: this.holidays, terms: this.terms };
     },
     fetchSavedBoard() {
-      const hasData = localStorage.getItem("kht.hasData");
+      const hasData = localStorage.getItem("kht.noteboard.hasData");
       if (hasData !== "true") {
         this.hasData = false;
         return false;
@@ -259,7 +269,7 @@ export default {
     },
     updateStorage() {
       console.log("changed");
-      localStorage.setItem("kht.hasData", this.hasData);
+      localStorage.setItem("kht.noteboard.hasData", this.hasData);
       localStorage.setItem(
         "kht.noteboard",
         JSON.stringify(this.generateFullData())
