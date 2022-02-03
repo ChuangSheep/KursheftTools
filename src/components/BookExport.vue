@@ -3,7 +3,12 @@
     <v-row>
       <v-dialog max-width="700px" persistent>
         <template v-slot:activator="{ on, attrs }">
-          <v-btn class="mr-6" color="primary" v-on="on" v-bind="attrs"
+          <v-btn
+            class="mr-6"
+            color="primary"
+            v-on="on"
+            v-bind="attrs"
+            :disabled="progress > 0 && progress < 100"
             >Kurshefte generieren</v-btn
           >
         </template>
@@ -16,9 +21,9 @@
                   v-model="gradesToExport"
                   :items="allowedGrades"
                   @change="onGradesChange"
+                  :rules="[gradesToExport.length > 0 || 'Erforderlich']"
                   label="Stufen zum Exportieren"
                   multiple
-                  hide-details
                 >
                   <template v-slot:selection="{ item }">
                     <v-chip style="height: 30px"
@@ -30,7 +35,10 @@
             </v-container>
             <v-card-actions class="pr-6 pl-10 pb-6 pt-4">
               <v-spacer></v-spacer>
-              <v-btn color="primary" @click="onGenerate(dialogResult)"
+              <v-btn
+                color="primary"
+                @click="onGenerate(dialogResult)"
+                :disabled="gradesToExport.length == 0"
                 >Bestätigen</v-btn
               >
               <div class="px-2"></div>
@@ -39,6 +47,9 @@
           </v-card>
         </template>
       </v-dialog>
+      <v-btn @click="onRedownload" :disabled="progress < 0 || res == null"
+        >Herunterladen</v-btn
+      >
       <v-spacer></v-spacer>
       <v-btn
         class="mr-6"
@@ -47,14 +58,20 @@
         >Zurück</v-btn
       >
     </v-row>
-    <v-row class="mt-16" justify="space-around">
-      <v-col cols="10">
+    
+    <v-row justify="space-around">
+      <v-col cols="10" class="mt-12">
         <v-progress-linear
-          v-model="progress"
+          :value="progress"
           height="25"
-          :color="progress >= 0 ? 'primary' : 'grey'"
+          :color="progress >= 0 ? 'light-blue' : 'grey'"
           striped
         >
+          <strong
+            class="grey--text"
+            :class="{ 'text--darken-4': progress >= 0 }"
+            >{{ progressDisplay }}</strong
+          >
         </v-progress-linear>
       </v-col>
     </v-row>
@@ -91,6 +108,8 @@ export default {
       terms: [],
       courselist: [],
       res: null,
+      exportCount: 0,
+      toExport: 0,
     };
   },
   methods: {
@@ -108,31 +127,56 @@ export default {
 
       this.prevGrades = JSON.parse(JSON.stringify(this.gradesToExport));
     },
-    onGenerate(dialogResult) {
+    async onGenerate(dialogResult) {
       dialogResult.value = false;
+      window.URL.revokeObjectURL(this.res);
+      this.res = null;
+
+      const grades =
+        this.gradesToExport == "Alle"
+          ? this.allowedGrades
+          : this.gradesToExport;
+
+      const coursesToExport = this.courselist.filter((c) =>
+        grades.includes(c.class)
+      );
+      this.exportCount = 0;
+      this.toExport = coursesToExport.length;
+
       PDFUtils.create(
         this.holidays,
         this.terms,
-        this.courselist,
-        this.gradesToExport,
-        () => {},
+        coursesToExport,
+        () => {
+          this.exportCount++;
+          this.progress = (this.exportCount / this.toExport) * 100;
+        },
         (blob) => {
           const filename = `merged-${this.gradesToExport.join("-")}`;
+          this.res = window.URL.createObjectURL(blob);
+
           if (window.navigator.msSaveOrOpenBlob) {
             window.navigator.msSaveBlob(blob, filename);
           } else {
-            const elem = window.document.createElement("a");
-            elem.href = window.URL.createObjectURL(blob, { oneTimeOnly: true });
-            elem.download = filename;
-            elem.style.display = "none";
-            document.body.appendChild(elem);
-            elem.click();
-            document.body.removeChild(elem);
+            this.triggerDownload(filename, this.res);
           }
         }
       );
     },
+    triggerDownload(filename, objectURL) {
+      const elem = window.document.createElement("a");
+      elem.href = objectURL;
+      elem.download = filename;
+      elem.style.display = "none";
+      document.body.appendChild(elem);
+      elem.click();
+      document.body.removeChild(elem);
+    },
+    onRedownload() {
+      this.triggerDownload(`merged-${this.gradesToExport.join("-")}`, this.res);
+    },
     fetchData() {
+      // try to fetch the course list
       {
         const hasData = sessionStorage.getItem("kht.courselist.hasData");
         if (hasData !== "true") {
@@ -146,6 +190,7 @@ export default {
         }
       }
 
+      // try to fetch the noteboard
       {
         const hasData = localStorage.getItem("kht.noteboard.hasData");
         if (hasData !== "true") {
@@ -173,8 +218,12 @@ export default {
       }
     },
   },
-  watch: {
-    res() {},
+  computed: {
+    progressDisplay() {
+      return this.progress < 0
+        ? '"Kurshefte Generieren" Klicken'
+        : Math.ceil(this.progress);
+    },
   },
   mounted() {
     this.fetchData();

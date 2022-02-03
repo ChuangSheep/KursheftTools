@@ -85,16 +85,31 @@
             >{{ dateUtils.toGermanDateFormat(data.termStart) }} -
             {{ dateUtils.toGermanDateFormat(data.termEnd) }}</v-subheader
           >
-          <v-list-item v-for="(entry, j) in data.days" :key="j" fluid>
-            <!-- Don't include weekend -->
-            <daynote-entry
-              :date="entry.date"
-              :initNotes="entry.notes"
-              :allowedGrades="allowedGrades"
-              @update="onNoteUpdate(j)"
-              style="width: 100%"
-            />
-          </v-list-item>
+          <v-responsive
+            min-height="100"
+            class="fill-height"
+            color="transparent"
+            v-for="(entry, j) in data.days"
+            :key="j"
+          >
+            <v-lazy
+              :options="{
+                threshold: 0.5,
+              }"
+              :v-model="visible[j]"
+              transition="fade-transition"
+            >
+              <v-list-item fluid>
+                <daynote-entry
+                  :date="entry.date"
+                  :initNotes="entry.notes"
+                  :allowedGrades="allowedGrades"
+                  @update="onNoteUpdate(j)"
+                  style="width: 100%"
+                />
+              </v-list-item>
+            </v-lazy>
+          </v-responsive>
         </v-list>
       </v-col>
     </v-row>
@@ -130,6 +145,7 @@ export default {
       hasData: false,
       terms: [],
       holidays: [],
+      visible: [],
     };
   },
   methods: {
@@ -312,8 +328,7 @@ export default {
   },
   mounted() {
     if (this.fetchSavedBoard()) {
-      this.terms[0].fillDays();
-      this.terms[1].fillDays();
+      this.visible.fill(false);
     }
   },
 };

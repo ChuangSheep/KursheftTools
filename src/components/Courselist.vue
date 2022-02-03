@@ -46,7 +46,7 @@ export default {
         { text: "Stufe", value: "class", align: "start" },
         { text: "Fach", value: "subject" },
         { text: "Lehrer|In", value: "teacher" },
-        { text: "Wochentage", value: "day" },
+        { text: "Wochentage", value: "days" },
       ],
       frontList: [],
     };
@@ -87,13 +87,13 @@ export default {
       console.log("list changed");
       this.condensedList.forEach((course) => {
         let copy = JSON.parse(JSON.stringify(course));
-        copy.day = copy.day.map(
+        copy.days = copy.days.map(
           (arr) =>
             `${arr[0]}${arr[1] == "" ? "" : " ("}${arr[1] == "" ? "" : arr[1]}${
               arr[1] == "" ? "" : ")"
             }`
         );
-        copy.day = copy.day.join(", ");
+        copy.days = copy.days.join(", ");
         this.frontList.push(copy);
       });
       this.updateStorage();

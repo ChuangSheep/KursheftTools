@@ -21,6 +21,7 @@
             <v-col cols="4" class="pa-0">
               <v-text-field
                 type="date"
+                locale="de"
                 placeholder="dd.mm.yyyy"
                 label="Von"
                 v-model="data.start"

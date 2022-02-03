@@ -17,7 +17,7 @@ let DateUtils = {
   },
 
   toNormalString(date) {
-    return `${date.getYear() + 1900}-${date.getMonth() < 9 ? "0" : ""}${date.getMonth() + 1}-${date.getDate() < 10 ? "0" : ""}${date.getDate()}`
+    return `${date.getFullYear()}-${date.getMonth() < 9 ? "0" : ""}${date.getMonth() + 1}-${date.getDate() < 10 ? "0" : ""}${date.getDate()}`
   },
 
   validateCourseDates(dates) {

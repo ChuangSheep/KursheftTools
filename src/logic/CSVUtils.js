@@ -74,7 +74,7 @@ let CSVUtils = {
             class: cls[1][0].class,
             teacher: cls[1][0].teacher,
             subject: cls[1][0].subject,
-            day: days,
+            days: days,
           };
           if (currentCourse.subject)
             courses.push(currentCourse);

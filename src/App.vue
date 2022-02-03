@@ -9,12 +9,14 @@
         </v-row>
         <v-row justify="center">
           <v-col cols="12">
-            <component
-              :allowedGrades="allowedGrades"
-              :is="pages[step - 1]"
-              @back="step == 1 ? (step = 3) : step--"
-              @next="step == 3 ? (step = 1) : step++"
-            ></component>
+            <!-- <transition name="fade-transition" :duration="{ enter: 500, leave: 500 }"> -->
+              <component
+                :allowedGrades="allowedGrades"
+                :is="pages[step - 1]"
+                @back="step == 1 ? (step = 3) : step--"
+                @next="step == 3 ? (step = 1) : step++"
+              ></component>
+            <!-- </transition> -->
           </v-col>
         </v-row>
       </v-container>
