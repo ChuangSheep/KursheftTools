@@ -58,7 +58,7 @@
         >Zurück</v-btn
       >
     </v-row>
-    
+
     <v-row justify="space-around">
       <v-col cols="10" class="mt-12">
         <v-progress-linear
@@ -79,6 +79,37 @@
       <v-col cols="10">
         <v-card>
           <v-card-title> Zusammenfassung </v-card-title>
+          <v-card-text>
+            <p>
+              Zu exportierende Kurse:
+              {{ progress >= 0 ? `${exportCount}/${toExport}` : "N/A" }}
+            </p>
+            <p>
+              Stufen: {{ progress >= 0 ? gradesToExport.join(", ") : "N/A" }}
+            </p>
+            <v-container fluid>
+              <v-row v-for="(t, i) in terms" :key="i">
+                <v-col cols="2" class="pa-0 my-0 mb-4">
+                  {{ i + 1 }}. Abschnitt:</v-col
+                >
+                <v-col cols="10" class="pa-0 my-0 mb-4">
+                  {{ dateUtils.toGermanDateFormat(t.termStart) }} -
+                  {{ dateUtils.toGermanDateFormat(t.termEnd) }}</v-col
+                >
+              </v-row>
+            </v-container>
+            <v-container fluid>
+              <v-row v-for="(h, i) in holidays" :key="i">
+                <v-col cols="2" class="pa-0 my-0 mb-4">
+                  {{ i + 1 }}. Ferienphase:
+                </v-col>
+                <v-col cols="10" class="pa-0 my-0 mb-4">
+                  {{ dateUtils.toGermanDateFormat(h.start) }} -
+                  {{ dateUtils.toGermanDateFormat(h.end) }}</v-col
+                >
+              </v-row>
+            </v-container>
+          </v-card-text>
         </v-card>
       </v-col>
     </v-row>
@@ -86,6 +117,7 @@
 </template>
 
 <script>
+import DateUtils from "@/logic/DateUtils.js";
 import { Term } from "@/models/Term";
 import PDFUtils from "@/logic/PDFUtils.js";
 
@@ -101,6 +133,7 @@ export default {
   },
   data() {
     return {
+      dateUtils: DateUtils,
       progress: -1,
       prevGrades: [],
       gradesToExport: [],
