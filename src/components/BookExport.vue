@@ -118,7 +118,7 @@
 
 <script>
 import DateUtils from "@/logic/DateUtils.js";
-import { Term } from "@/models/Term";
+import { Plan } from "@/models/Plan";
 import PDFUtils from "@/logic/PDFUtils.js";
 
 export default {
@@ -137,8 +137,7 @@ export default {
       progress: -1,
       prevGrades: [],
       gradesToExport: [],
-      holidays: [],
-      terms: [],
+      plan: null,
       courselist: [],
       res: null,
       exportCount: 0,
@@ -177,8 +176,7 @@ export default {
       this.toExport = coursesToExport.length;
 
       PDFUtils.create(
-        this.holidays,
-        this.terms,
+        this.plan,
         coursesToExport,
         () => {
           this.exportCount++;
@@ -234,17 +232,7 @@ export default {
         const res = localStorage.getItem("kht.noteboard");
         if (res !== null) {
           const data = JSON.parse(res);
-          for (let i = 0; i < data.holidays.length; i++) {
-            const entry = data.holidays[i];
-            this.$set(this.holidays, i, {
-              start: new Date(entry.start),
-              end: new Date(entry.end),
-            });
-          }
-          for (let i = 0; i < data.terms.length; i++) {
-            const entry = data.terms[i];
-            this.$set(this.terms, i, Term.fromJSON(entry));
-          }
+          this.plan = Plan.fromJSON(data);
 
           this.hasData = true;
         }

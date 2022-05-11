@@ -6,7 +6,7 @@
         :hasData="hasData"
         :initDates="dates"
         @create="onNewBoardCreate"
-        @update="onNewBoardUpdate"
+        @update="onBoardUpdate"
         @delete="onBoardDelete"
       />
 
@@ -82,14 +82,14 @@
             {{ i + 1 }}. Abschnitt
           </v-subheader>
           <v-subheader style="margin-top: -15px"
-            >{{ dateUtils.toGermanDateFormat(data.termStart) }} -
+            >{{ dateUtils.toGermanDateFormat(data.termBegin) }} -
             {{ dateUtils.toGermanDateFormat(data.termEnd) }}</v-subheader
           >
           <v-responsive
             min-height="100"
             class="fill-height"
             color="transparent"
-            v-for="(entry, j) in data.days"
+            v-for="(day, j) in data.days"
             :key="j"
           >
             <v-lazy
@@ -101,10 +101,10 @@
             >
               <v-list-item fluid>
                 <daynote-entry
-                  :date="entry.date"
-                  :initNotes="entry.notes"
+                  :date="day.date"
+                  :initNotes="day.entries"
                   :allowedGrades="allowedGrades"
-                  @update="onNoteUpdate(j)"
+                  @update="(args) => onNoteUpdate(day.date, args)"
                   style="width: 100%"
                 />
               </v-list-item>
@@ -118,7 +118,7 @@
 
 <script>
 import DateUtils from "@/logic/DateUtils.js";
-import { Term } from "@/models/Term";
+import { Plan } from "@/models/Plan";
 
 import CreateNoteboardDialog from "./widgets/CreateNoteboardDialog.vue";
 import ComfirmationDialog from "./widgets/ComfirmationDialog.vue";
@@ -143,9 +143,9 @@ export default {
     return {
       dateUtils: DateUtils,
       hasData: false,
-      terms: [],
-      holidays: [],
       visible: [],
+
+      plan: null,
     };
   },
   methods: {
@@ -154,17 +154,10 @@ export default {
       if (file) {
         const fileText = await file.text();
         const data = JSON.parse(fileText);
-        for (let i = 0; i < data.holidays.length; i++) {
-          const entry = data.holidays[i];
-          this.$set(this.holidays, i, {
-            start: new Date(entry.start),
-            end: new Date(entry.end),
-          });
-        }
-        for (let i = 0; i < data.terms.length; i++) {
-          const entry = data.terms[i];
-          this.$set(this.terms, i, Term.fromJSON(entry));
-        }
+
+        // DEBUG: does it work?
+        this.plan = Plan.fromJSON(data);
+
         this.hasData = true;
       }
       // must play with dom to remove the pending file
@@ -173,8 +166,8 @@ export default {
     onFileExport() {
       const data = JSON.stringify(this.generateFullData());
       const filename = `Bemerkungsbogen-${
-        this.terms[0].termStart.getYear() + 1900
-      }-${this.terms[0].termStart.getMonth() + 1}`;
+        this.plan.term1Begin.getYear() + 1900
+      }-${this.term1Begin.getMonth() + 1}`;
       const blob = new Blob([data], { type: "application/json" });
       if (window.navigator.msSaveOrOpenBlob) {
         window.navigator.msSaveBlob(blob, filename);
@@ -189,102 +182,72 @@ export default {
       }
     },
     onNewBoardCreate(dates) {
-      this.terms = [
-        new Term(new Date(dates[0].start), new Date(dates[0].end)),
-        new Term(new Date(dates[1].start), new Date(dates[1].end)),
-      ];
-      for (const t of this.terms) {
-        t.fillDays();
-      }
-
-      this.holidays = [
-        {
-          start: new Date(dates[2].start),
-          end: new Date(dates[2].end),
-        },
-        {
-          start: new Date(dates[3].start),
-          end: new Date(dates[3].end),
-        },
-      ];
-      for (let i = 0; i < this.holidays.length; i++) {
-        this.holidays[i].start.setHours(12);
-        this.holidays[i].end.setHours(12);
-      }
-
-      this.hasData = true;
-      console.log(dates);
-    },
-    onNewBoardUpdate(dates) {
-      this.terms[0].modifyDates(
+      const np = new Plan(
         new Date(dates[0].start),
-        new Date(dates[0].end)
-      );
-      this.terms[1].modifyDates(
+        new Date(dates[0].end),
         new Date(dates[1].start),
         new Date(dates[1].end)
       );
 
-      this.holidays = [
-        {
-          start: new Date(dates[2].start),
-          end: new Date(dates[2].end),
-        },
-        {
-          start: new Date(dates[3].start),
-          end: new Date(dates[3].end),
-        },
-      ];
-      for (let i = 0; i < this.holidays.length; i++) {
-        this.holidays[i].start.setHours(12);
-        this.holidays[i].end.setHours(12);
+      for (let i = 2; i < dates.length; i++) {
+        const e = dates[i];
+        np.setHoliday(-1, new Date(e.start), new Date(e.end));
       }
+
+      this.plan = np;
+      this.hasData = true;
+      console.log(dates);
+      this.updateStorage();
+    },
+    onBoardUpdate(dates) {
+      this.plan.setTerms(
+        new Date(dates[0].start),
+        new Date(dates[0].end),
+        new Date(dates[1].start),
+        new Date(dates[1].end)
+      );
+
+      for (let i = 2; i < dates.length; i++) {
+        const e = dates[i];
+        this.plan.setHoliday(-1, new Date(e.start), new Date(e.end));
+      }
+
+      this.plan = Plan.fromJSON(JSON.parse(JSON.stringify(this.plan.toJSON())));
 
       this.updateStorage();
     },
     onBoardDelete() {
       this.hasData = false;
-      this.holidays = [];
-      this.terms = [];
+      this.plan = null;
     },
-    onNoteUpdate(i) {
-      console.log(i);
+    onNoteUpdate(date, notes) {
+      this.plan.entries.set(DateUtils.toNormalString(date), notes);
       this.updateStorage();
     },
     onNextClick() {
       this.$emit("next");
     },
     generateFullData() {
-      return { holidays: this.holidays, terms: this.terms };
+      return this.plan.toJSON();
     },
     fetchSavedBoard() {
+      this.hasData = false;
       const hasData = localStorage.getItem("kht.noteboard.hasData");
       if (hasData !== "true") {
-        this.hasData = false;
         return false;
       }
 
       const res = localStorage.getItem("kht.noteboard");
       if (res !== null) {
         const data = JSON.parse(res);
-        for (let i = 0; i < data.holidays.length; i++) {
-          const entry = data.holidays[i];
-          this.$set(this.holidays, i, {
-            start: new Date(entry.start),
-            end: new Date(entry.end),
-          });
-        }
-        for (let i = 0; i < data.terms.length; i++) {
-          const entry = data.terms[i];
-          this.$set(this.terms, i, Term.fromJSON(entry));
-        }
-
+        console.log(data);
+        this.plan = Plan.fromJSON(data);
         this.hasData = true;
         return true;
       } else return false;
     },
     updateStorage() {
-      console.log("changed");
+      console.log("store changed");
       localStorage.setItem("kht.noteboard.hasData", this.hasData);
       localStorage.setItem(
         "kht.noteboard",
@@ -294,38 +257,70 @@ export default {
   },
   computed: {
     dates() {
+      if (!this.plan) return null;
+
       const res = [
-        { name: "1. Abschnitt", start: "", end: "" },
-        { name: "2. Abschnitt", start: "", end: "" },
-        { name: "1. Ferienphase", start: "", end: "" },
-        { name: "2. Ferienphase", start: "", end: "" },
+        {
+          start: DateUtils.toNormalString(this.plan.term1Begin),
+          end: DateUtils.toNormalString(this.plan.term1End),
+        },
+        {
+          start: DateUtils.toNormalString(this.plan.term2Begin),
+          end: DateUtils.toNormalString(this.plan.term2End),
+        },
       ];
 
-      if (this.terms.length == 2 && this.terms[0] instanceof Term) {
-        for (let i = 0; i < this.terms.length; i++) {
-          const e = this.terms[i];
-          res[i].start = DateUtils.toNormalString(e.termStart);
-          res[i].end = DateUtils.toNormalString(e.termEnd);
-        }
-      }
-
-      if (this.holidays.length == 2 && this.holidays[0].start) {
-        for (let i = 0; i < this.holidays.length; i++) {
-          const e = this.holidays[i];
-          res[i + 2].start = DateUtils.toNormalString(e.start);
-          res[i + 2].end = DateUtils.toNormalString(e.end);
-        }
+      for (let i = 0; i < this.plan.holidays.length; i++) {
+        const e = this.plan.holidays[i];
+        res.push({
+          start: DateUtils.toNormalString(e[0]),
+          end: DateUtils.toNormalString(e[1]),
+        });
       }
       return res;
     },
-  },
-  watch: {
-    terms: {
-      handler() {
-        this.updateStorage();
-      },
+    terms() {
+      if (!this.hasData || !this.plan) return [];
+
+      const rtr = [
+        {
+          termBegin: this.plan.term1Begin,
+          termEnd: this.plan.term1End,
+          days: [],
+        },
+        {
+          termBegin: this.plan.term2Begin,
+          termEnd: this.plan.term2End,
+          days: [],
+        },
+      ];
+
+      for (let i = 0; i < 2; i++) {
+        for (
+          let d = new Date(rtr[i].termBegin);
+          d <= rtr[i].termEnd;
+          d.setDate(d.getDate() + 1)
+        ) {
+          if (d.getDay() == 0 || d.getDay() == 6) continue;
+
+          const day = {
+            date: new Date(d),
+            entries: this.plan.entries.get(DateUtils.toNormalString(d)) || [],
+          };
+          rtr[i].days.push(day);
+        }
+      }
+
+      return rtr;
     },
   },
+  // watch: {
+  //   terms: {
+  //     handler() {
+  //       this.updateStorage();
+  //     },
+  //   },
+  // },
   mounted() {
     if (this.fetchSavedBoard()) {
       this.visible.fill(false);
@@ -350,52 +345,3 @@ export default {
   pointer-events: none;
 }
 </style>
-
-
-// terms: [
-//         {
-//           termStart: new Date(2022, 0, 31),
-//           termEnd: new Date(2022, 3, 8),
-//           days: [
-//             {
-//               date: new Date(2022, 0, 31),
-//               notes: [
-//                 { grade: ["Q1"], content: "One Note" },
-//                 { grade: ["Q1"], content: "Two Note" },
-//               ],
-//             },
-//             {
-//               date: new Date(2022, 1, 1),
-//               notes: [{ grade: ["Q1"], content: "One Note" }],
-//             },
-//             {
-//               date: new Date(2022, 1, 2),
-//               notes: [],
-//             },
-//           ],
-//         },
-//         {
-//           termStart: new Date(2022, 0, 31),
-//           termEnd: new Date(2022, 3, 8),
-//           days: [
-//             {
-//               date: new Date(2022, 0, 31),
-//               notes: [
-//                 { grade: ["Q1"], content: "One Note" },
-//                 { grade: ["Q1"], content: "Two Note" },
-//               ],
-//             },
-//           ],
-//         },
-//       ],
-
-//  holidays: [
-//         {
-//           start: new Date(2022, 1, 1, 12),
-//           end: new Date(2022, 1, 2, 12),
-//         },
-//         {
-//           start: new Date(2022, 1, 3, 12),
-//           end: new Date(2022, 1, 4, 12),
-//         },
-//       ],

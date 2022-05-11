@@ -16,7 +16,7 @@
             :key="i"
           >
             <v-col cols="3" class="pa-0 pb-6">
-              <span>{{ data.name }}</span>
+              <span>{{ fieldName(i) }}</span>
             </v-col>
             <v-col cols="4" class="pa-0">
               <v-text-field
@@ -36,6 +36,7 @@
             <v-col cols="4" class="pa-0">
               <v-text-field
                 type="date"
+                locale="de"
                 placeholder="dd.mm.yyyy"
                 label="Bis"
                 v-model="data.end"
@@ -93,25 +94,12 @@ export default {
     },
     initDates: {
       type: Array,
-      default() {
-        return [
-          { name: "1. Abschnitt", start: "", end: "" },
-          { name: "2. Abschnitt", start: "", end: "" },
-          { name: "1. Ferienphase", start: "", end: "" },
-          { name: "2. Ferienphase", start: "", end: "" },
-        ];
-      },
     },
   },
   data() {
     return {
       dates: [],
-      validationRules: [
-        { start: true, end: true },
-        { start: true, end: true },
-        { start: true, end: true },
-        { start: true, end: true },
-      ],
+      validationRules: [],
     };
   },
   methods: {
@@ -139,6 +127,10 @@ export default {
       this.$emit("delete");
       dialogResult.value = false;
     },
+    fieldName(i) {
+      if (i < 2) return `${i + 1}. Abschnitt`;
+      else return `${i - 1}. Ferienphase`;
+    },
   },
   computed: {
     title() {
@@ -153,17 +145,26 @@ export default {
       return this.hasData ? "" : "primary";
     },
   },
-  watch: {
-    initDates: {
-      immediate: true,
-      handler() {
-        this.dates = this.initDates;
-      },
-    },
-  },
+  // watch: {
+  //   initDates: {
+  //     immediate: true,
+  //     handler() {
+  //       this.dates = JSON.parse(JSON.stringify(this.initDates));
+  //     },
+  //   },
+  // },
   created() {
     if (this.hasData) this.dates = JSON.parse(JSON.stringify(this.initDates));
-    else this.dates = this.initDates;
+    else
+      this.dates = [
+        { start: "", end: "" },
+        { start: "", end: "" },
+        { start: "", end: "" },
+        { start: "", end: "" },
+      ];
+
+    for (let i = 0; i < this.dates.length; i++)
+      this.validationRules.push({ start: true, end: true });
   },
 };
 </script>

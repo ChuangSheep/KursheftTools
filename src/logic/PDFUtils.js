@@ -141,7 +141,7 @@ const HINWEIS = "Alle Termine dieser Liste müssen in der Kursmappe eingetragen 
 /* eslint-disable no-undef */
 let PDFUtils = {
   // eslint-disable-next-line no-unused-vars
-  async create(holidays, terms, courses, onIncrement, onFinish) {
+  async create(plan, courses, onIncrement, onFinish) {
 
     // Create the document
     const output = new PDFDocument({ autoFirstPage: false, size: "A4" });
@@ -221,6 +221,7 @@ let PDFUtils = {
       }
 
       onIncrement();
+      // TODO: service worker to enable multi threading
       await new Promise(r => setTimeout(r, 25));
     }
 

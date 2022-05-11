@@ -4,11 +4,11 @@
     <v-row v-for="(data, i) in notes" :key="i" class="pa-4">
       <v-col cols="8" class="py-0">
         <v-select
-          v-model="data.grade"
+          v-model="data.grades"
           :items="allowedGrades"
           @change="onNoteGradeChange(i, data)"
           :style="[
-            data.grade.length > 1 ? { width: '160px' } : { width: '70pt' },
+            data.grades.length > 1 ? { width: '160px' } : { width: '70pt' },
           ]"
           class="pa-0"
           multiple
@@ -19,7 +19,7 @@
               ><span>{{ item }}</span></v-chip
             >
             <span v-if="index == 2" class="text-caption grey--text pl-2"
-              >+{{ data.grade.length - 2 }}</span
+              >+{{ data.grades.length - 2 }}</span
             >
           </template>
         </v-select>
@@ -74,21 +74,21 @@ export default {
   methods: {
     onNoteGradeChange(i, note) {
       if (
-        !this.prevNotes[i].grade.includes("Alle") &&
-        note.grade.includes("Alle")
+        !this.prevNotes[i].grades.includes("Alle") &&
+        note.grades.includes("Alle")
       )
-        note.grade = ["Alle"];
+        note.grades = ["Alle"];
       else if (
-        this.prevNotes[i].grade.includes("Alle") &&
-        note.grade.length > 0
+        this.prevNotes[i].grades.includes("Alle") &&
+        note.grades.length > 0
       )
-        note.grade = note.grade.filter((g) => g != "Alle");
+        note.grades = note.grades.filter((g) => g != "Alle");
 
       this.$emit("update", this.notes);
       this.prevNotes = JSON.parse(JSON.stringify(this.notes));
     },
     onNoteCreate() {
-      this.notes.push({ grade: ["Alle"], content: "" });
+      this.notes.push({ grades: ["Alle"], content: "" });
       this.$emit("update", this.notes);
       this.prevNotes = JSON.parse(JSON.stringify(this.notes));
     },
