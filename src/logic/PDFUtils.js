@@ -19,7 +19,7 @@ function _yPercentToPx(percent) {
 }
 
 // row: [{day:String, date:String, note:String},{...},...]
-function _getRows(holidays, terms, course) {
+function _getRows(plan, course) {
   const getWeekNo = (date) => {
     // Copy date so don't modify original
     date = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -36,7 +36,13 @@ function _getRows(holidays, terms, course) {
     else return weekNo;
   }
 
+  // test if it is the right weekday and not in a holiday
   const hasCourseOn = (date) => {
+    // not in holiday
+    for (const h of plan.holidays) {
+      if (_isDateBetween(date, h[0], h[1])) return false;
+    }
+    // check weekday
     for (const entry of course.days) {
       if (entry[0] == date.getDay()) {
         if (entry[1] === "g" && getWeekNo(date) % 2 != 0) {
@@ -54,27 +60,57 @@ function _getRows(holidays, terms, course) {
   const getAllNotes = (allNotes) => {
     let res = "";
     for (const note of allNotes) {
-      if (note.grade.includes(course.class) || note.grade.includes("Alle"))
+      if (note.grades.includes(course.class) || note.grades.includes("Alle"))
         res += `${note.content}; `;
     }
     return res;
   }
 
+  const compareGermanDateString = (a, b) => {
+    const ac = a.split(".").map(i => Number.parseInt(i));
+    const bc = b.split(".").map(i => Number.parseInt(i));
+
+    return new Date(ac[2], ac[1] - 1, ac[0]) - new Date(bc[2], bc[1] - 1, bc[0]);
+  }
+
   const res = [];
 
-  for (let i = 0; i < 2; i++) {
-    for (const entry of terms[i].days) {
-      if (hasCourseOn(entry.date)) {
-        res.push({
-          day: entry.date.toLocaleDateString("de-de", {
-            weekday: "short"
-          }),
-          date: _getPointDateString(entry.date),
-          note: getAllNotes(entry.notes)
-        })
-      }
+  // add holiday notices
+  for (const h of plan.holidays) {
+    res.push({
+      day: h[0].toLocaleDateString("de-de", {
+        weekday: "short"
+      }),
+      date: _getPointDateString(h[0]),
+      note: `Ferien bis ${_getPointDateString(h[1])}`
+    })
+  }
+
+  for (let d = new Date(plan.term1Begin); d <= plan.term1End; d.setDate(d.getDate() + 1)) {
+    if (hasCourseOn(d)) {
+      res.push({
+        day: d.toLocaleDateString("de-de", {
+          weekday: "short"
+        }),
+        date: _getPointDateString(d),
+        note: getAllNotes(plan.entries.get(_toNormalString(d)) || "")
+      })
     }
   }
+
+  for (let d = new Date(plan.term2Begin); d <= plan.term2End; d.setDate(d.getDate() + 1)) {
+    if (hasCourseOn(d)) {
+      res.push({
+        day: d.toLocaleDateString("de-de", {
+          weekday: "short"
+        }),
+        date: _getPointDateString(d),
+        note: getAllNotes(plan.entries.get(_toNormalString(d)) || "")
+      })
+    }
+  }
+
+  res.sort((a, b) => compareGermanDateString(a.date, b.date));
 
   return res;
 }
@@ -92,16 +128,26 @@ function _getTitleYear(date) {
     return `${year - 1}/${year}`;
 }
 
+function _toNormalString(date) {
+  return `${date.getFullYear()}-${date.getMonth() < 9 ? "0" : ""}${date.getMonth() + 1}-${date.getDate() < 10 ? "0" : ""}${date.getDate()}`
+}
+
+function _isDateBetween(date, from, to) {
+  return date.getFullYear() >= from.getFullYear() &&
+    date.getMonth() >= from.getMonth() && date.getDate() >= from.getDate() &&
+    date.getFullYear() <= to.getFullYear() && date.getMonth() <= to.getMonth() &&
+    date.getDate() <= to.getDate();
+}
 
 // return: ["Jahrgangstufe Q1.2 ..","Sollstunde ..."]
-function _getTitle(terms, course) {
+function _getTitle(plan, course) {
   const res = [];
 
-  const grade = ["EF", "Q1", "Q2"].includes(course.class) ?
+  const grades = ["EF", "Q1", "Q2"].includes(course.class) ?
     course.class :
     course.class.substring(0, course.class.length - 1).replace(/^0+/, '');
 
-  res.push(`Jahrgangstufe ${grade}.${_getHalfYear(terms[0].termStart)}    ${_getHalfYear(terms[0].termStart)}. Halbjahr ${_getTitleYear(terms[0].termStart)}`);
+  res.push(`Jahrgangstufe ${grades}.${_getHalfYear(plan.term1Begin)}    ${_getHalfYear(plan.term1Begin)}. Halbjahr ${_getTitleYear(plan.term1Begin)}`);
 
   res.push(`Sollstunde für Kurs  ${course.subject}-${course.teacher}-${course.class}`);
 
@@ -133,7 +179,7 @@ const MAX_ROW = 65;
 
 const HEADER = ["Tag", "Datum", "Besonderheiten"]
 
-const HINWEIS = "Alle Termine dieser Liste müssen in der Kursmappe eingetragen sein, auch die unterrichtsfreien Tage. Alle Termine(außer den Ferien) müssen durch ihre Paraphe bestätigt werden. Tragen Sie bitte auch die Fehlstundenzahl sowie die Soll - Ist - Stunden(Kursheft S.5) ein. \nHinweis: Schüler, die aus schulischen Gründen den Unterricht versäumt haben(Klausur, schul.Veranstaltung usw.) müssen im Kursheft aufgeführt werden. Diese Stunden dürfen auf dem Zeugnis aber nicht als Fehlstunden vermerkt werden."
+const HINWEIS = "Alle Termine dieser Liste müssen in der Kursmappe eingetragen sein, auch die unterrichtsfreien Tage. Alle Termine (außer den Ferien) müssen durch ihre Paraphe bestätigt werden. Tragen Sie bitte auch die Fehlstundenzahl sowie die Soll - Ist - Stunden (Kursheft S.5) ein. \nHinweis: Schüler, die aus schulischen Gründen den Unterricht versäumt haben (Klausur, schul.Veranstaltung usw.) müssen im Kursheft aufgeführt werden. Diese Stunden dürfen auf dem Zeugnis aber nicht als Fehlstunden vermerkt werden."
 
 
 // https://stackoverflow.com/questions/35725594/how-do-i-pass-data-like-a-user-id-to-a-web-worker-for-fetching-additional-push
@@ -148,15 +194,15 @@ let PDFUtils = {
     const stream = output.pipe(blobStream());
 
     // General information
-    const courseTerms = [`${_getPointDateString(terms[0].termStart)} - ${_getPointDateString(terms[0].termEnd)}`,
-    `${_getPointDateString(terms[1].termStart)} - ${_getPointDateString(terms[1].termEnd)}`];
+    const courseTerms = [`${_getPointDateString(plan.term1Begin)} - ${_getPointDateString(plan.term1End)}`,
+    `${_getPointDateString(plan.term2Begin)} - ${_getPointDateString(plan.term2End)}`];
 
 
     // Loop through all exports
     for (const course of courses) {
       output.addPage({ margin: 0, size: "A4" });
-      const row = _getRows(holidays, terms, course);
-      const title = _getTitle(terms, course);
+      const row = _getRows(plan, course);
+      const title = _getTitle(plan, course);
 
       if (row.length > MAX_ROW)
         console.warn(`Maximal row limitation ${MAX_ROW} exceeded. Actual: ${row.length}.`);
@@ -209,7 +255,7 @@ let PDFUtils = {
           yPointer += Y_BOX_HEIGHT;
           output.text(`2. Kursabschnitt: ${courseTerms[1]}`, xPointer, yPointer);
 
-          yPointer += Y_BOX_HEIGHT*1.1;
+          yPointer += Y_BOX_HEIGHT * 1.1;
           output.fontSize(7);
           output.text(HINWEIS, xPointer, yPointer,
             {

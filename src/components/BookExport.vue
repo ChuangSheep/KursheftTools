@@ -88,24 +88,13 @@
               Stufen: {{ progress >= 0 ? gradesToExport.join(", ") : "N/A" }}
             </p>
             <v-container fluid>
-              <v-row v-for="(t, i) in terms" :key="i">
+              <v-row v-for="(t, i) in dates" :key="i">
                 <v-col cols="2" class="pa-0 my-0 mb-4">
-                  {{ i + 1 }}. Abschnitt:</v-col
-                >
-                <v-col cols="10" class="pa-0 my-0 mb-4">
-                  {{ dateUtils.toGermanDateFormat(t.termStart) }} -
-                  {{ dateUtils.toGermanDateFormat(t.termEnd) }}</v-col
-                >
-              </v-row>
-            </v-container>
-            <v-container fluid>
-              <v-row v-for="(h, i) in holidays" :key="i">
-                <v-col cols="2" class="pa-0 my-0 mb-4">
-                  {{ i + 1 }}. Ferienphase:
+                  {{ intervalName(i) }}:
                 </v-col>
                 <v-col cols="10" class="pa-0 my-0 mb-4">
-                  {{ dateUtils.toGermanDateFormat(h.start) }} -
-                  {{ dateUtils.toGermanDateFormat(h.end) }}</v-col
+                  {{ dateUtils.toGermanDateFormat(t.start) }} -
+                  {{ dateUtils.toGermanDateFormat(t.end) }}</v-col
                 >
               </v-row>
             </v-container>
@@ -238,12 +227,38 @@ export default {
         }
       }
     },
+    intervalName(i) {
+      return i < 2 ? `${i + 1}. Abschnitt` : `${i - 1}. Ferienphase`;
+    },
   },
   computed: {
     progressDisplay() {
       return this.progress < 0
         ? '"Kurshefte Generieren" Klicken'
         : Math.ceil(this.progress);
+    },
+    dates() {
+      if (!this.plan) return null;
+
+      const res = [
+        {
+          start: this.plan.term1Begin,
+          end: this.plan.term1End,
+        },
+        {
+          start: this.plan.term2Begin,
+          end: this.plan.term2End,
+        },
+      ];
+
+      for (let i = 0; i < this.plan.holidays.length; i++) {
+        const e = this.plan.holidays[i];
+        res.push({
+          start: e[0],
+          end: e[1],
+        });
+      }
+      return res;
     },
   },
   mounted() {

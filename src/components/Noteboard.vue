@@ -96,7 +96,6 @@
               :options="{
                 threshold: 0.5,
               }"
-              :v-model="visible[j]"
               transition="fade-transition"
             >
               <v-list-item fluid>
@@ -143,7 +142,6 @@ export default {
     return {
       dateUtils: DateUtils,
       hasData: false,
-      visible: [],
 
       plan: null,
     };
@@ -167,7 +165,7 @@ export default {
       const data = JSON.stringify(this.generateFullData());
       const filename = `Bemerkungsbogen-${
         this.plan.term1Begin.getYear() + 1900
-      }-${this.term1Begin.getMonth() + 1}`;
+      }-${this.plan.term1Begin.getMonth() + 1}`;
       const blob = new Blob([data], { type: "application/json" });
       if (window.navigator.msSaveOrOpenBlob) {
         window.navigator.msSaveBlob(blob, filename);
@@ -207,6 +205,7 @@ export default {
         new Date(dates[1].end)
       );
 
+      this.plan.holidays = [];
       for (let i = 2; i < dates.length; i++) {
         const e = dates[i];
         this.plan.setHoliday(-1, new Date(e.start), new Date(e.end));
@@ -219,6 +218,7 @@ export default {
     onBoardDelete() {
       this.hasData = false;
       this.plan = null;
+      this.updateStorage();
     },
     onNoteUpdate(date, notes) {
       this.plan.entries.set(DateUtils.toNormalString(date), notes);
@@ -242,6 +242,7 @@ export default {
         const data = JSON.parse(res);
         console.log(data);
         this.plan = Plan.fromJSON(data);
+        console.log(this.plan);
         this.hasData = true;
         return true;
       } else return false;
@@ -249,6 +250,10 @@ export default {
     updateStorage() {
       console.log("store changed");
       localStorage.setItem("kht.noteboard.hasData", this.hasData);
+      if (!this.hasData) {
+        localStorage.removeItem("kht.noteboard");
+        return;
+      }
       localStorage.setItem(
         "kht.noteboard",
         JSON.stringify(this.generateFullData())
@@ -301,7 +306,15 @@ export default {
           d <= rtr[i].termEnd;
           d.setDate(d.getDate() + 1)
         ) {
+          // not on weekend
           if (d.getDay() == 0 || d.getDay() == 6) continue;
+          // not in holiday
+          if (
+            this.plan.holidays.some((h) =>
+              DateUtils.isDateBetween(d, h[0], h[1])
+            )
+          )
+            continue;
 
           const day = {
             date: new Date(d),
@@ -322,9 +335,7 @@ export default {
   //   },
   // },
   mounted() {
-    if (this.fetchSavedBoard()) {
-      this.visible.fill(false);
-    }
+    this.fetchSavedBoard();
   },
 };
 </script>

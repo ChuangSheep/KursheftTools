@@ -21,11 +21,10 @@ class Plan {
     let ins = new Plan(new Date(obj.term1Begin), new Date(obj.term1End),
       new Date(obj.term2Begin), new Date(obj.term2End));
 
-    ins.holidays.forEach(v =>
+    obj.holidays.forEach(v =>
       ins.setHoliday(-1, new Date(v[0]), new Date(v[1])));
 
     ins.entries = new Map(Object.entries(json.entries));
-
     return ins;
   }
 

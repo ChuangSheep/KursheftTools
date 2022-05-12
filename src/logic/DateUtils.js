@@ -20,6 +20,13 @@ let DateUtils = {
     return `${date.getFullYear()}-${date.getMonth() < 9 ? "0" : ""}${date.getMonth() + 1}-${date.getDate() < 10 ? "0" : ""}${date.getDate()}`
   },
 
+  isDateBetween(date, from, to) {
+    return date.getFullYear() >= from.getFullYear() &&
+      date.getMonth() >= from.getMonth() && date.getDate() >= from.getDate() &&
+      date.getFullYear() <= to.getFullYear() && date.getMonth() <= to.getMonth() &&
+      date.getDate() <= to.getDate();
+  },
+
   validateCourseDates(dates) {
     let res = [{ start: true, end: true }, { start: true, end: true }, { start: true, end: true }, { start: true, end: true }];
 

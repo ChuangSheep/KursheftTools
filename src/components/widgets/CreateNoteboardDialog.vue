@@ -111,6 +111,7 @@ export default {
       }
     },
     validate() {
+      console.log(this.dates);
       let res = DateUtils.validateCourseDates(this.dates);
       for (let i = 0; i < res.length; i++) {
         const entry = res[i];
@@ -145,14 +146,16 @@ export default {
       return this.hasData ? "" : "primary";
     },
   },
-  // watch: {
-  //   initDates: {
-  //     immediate: true,
-  //     handler() {
-  //       this.dates = JSON.parse(JSON.stringify(this.initDates));
-  //     },
-  //   },
-  // },
+  watch: {
+    initDates: {
+      immediate: true,
+      handler() {
+        this.dates = JSON.parse(JSON.stringify(this.initDates));
+        for (let i = 0; this.dates && i < this.dates.length; i++)
+          this.validationRules.push({ start: true, end: true });
+      },
+    },
+  },
   created() {
     if (this.hasData) this.dates = JSON.parse(JSON.stringify(this.initDates));
     else
