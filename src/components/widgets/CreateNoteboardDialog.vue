@@ -1,5 +1,5 @@
 <template>
-  <v-dialog max-width="700px" persistent>
+  <v-dialog max-width="750px" persistent>
     <template v-slot:activator="{ on, attrs }">
       <v-btn class="mr-6" :color="activatorColor" v-on="on" v-bind="attrs">{{
         activatorTitle
@@ -8,9 +8,9 @@
     <template v-slot:default="dialogResult">
       <v-card>
         <v-card-title>{{ title }}</v-card-title>
-        <v-container class="pl-8 mt-4" fluid>
+        <v-container class="pl-8 mt-7 mb-2" fluid>
           <v-row
-            class="pb-1 px-6"
+            class="pb-5 px-6"
             align="center"
             v-for="(data, i) in dates"
             :key="i"
@@ -18,35 +18,57 @@
             <v-col cols="3" class="pa-0 pb-6">
               <span>{{ fieldName(i) }}</span>
             </v-col>
-            <v-col cols="4" class="pa-0">
-              <v-text-field
-                type="date"
-                locale="de"
-                placeholder="dd.mm.yyyy"
-                label="Von"
-                v-model="data.start"
-                :rules="[validationRules[i].start]"
-                :error="validationRules[i].start !== true"
-                outlined
-                dense
+            <v-row class="pa-0" align="center" justify="center">
+              <v-col cols="5" class="pa-0">
+                <v-text-field
+                  type="date"
+                  locale="de"
+                  placeholder="dd.mm.yyyy"
+                  label="Von"
+                  v-model="data.start"
+                  :rules="[validationRules[i].start]"
+                  :error="validationRules[i].start !== true"
+                  outlined
+                  dense
+                >
+                </v-text-field>
+              </v-col>
+              <v-spacer></v-spacer>
+              <v-col cols="5" class="pa-0">
+                <v-text-field
+                  type="date"
+                  locale="de"
+                  placeholder="dd.mm.yyyy"
+                  label="Bis"
+                  v-model="data.end"
+                  :rules="[validationRules[i].end]"
+                  :error="validationRules[i].end !== true"
+                  outlined
+                  dense
+                >
+                </v-text-field>
+              </v-col>
+              <v-col
+                cols="1"
+                style="margin: -22pt 0 0 -5pt"
+                :style="{
+                  visibility: isLast(i) ? 'visible' : 'hidden',
+                }"
+                ><v-btn icon @click="onHolidayAdd">
+                  <v-icon>mdi-plus-circle</v-icon></v-btn
+                ></v-col
               >
-              </v-text-field>
-            </v-col>
-            <v-col cols="1" class="text-center"></v-col>
-            <v-col cols="4" class="pa-0">
-              <v-text-field
-                type="date"
-                locale="de"
-                placeholder="dd.mm.yyyy"
-                label="Bis"
-                v-model="data.end"
-                :rules="[validationRules[i].end]"
-                :error="validationRules[i].end !== true"
-                outlined
-                dense
+              <v-col
+                cols="1"
+                style="margin: -22pt 0 0 -10pt"
+                :style="{
+                  visibility: isLastHoliday(i) ? 'visible' : 'hidden',
+                }"
+                ><v-btn icon @click="onHolidayDelete">
+                  <v-icon>mdi-delete</v-icon></v-btn
+                ></v-col
               >
-              </v-text-field>
-            </v-col>
+            </v-row>
           </v-row>
         </v-container>
         <v-card-actions class="pr-6 pl-10 pb-6 pt-4">
@@ -111,7 +133,6 @@ export default {
       }
     },
     validate() {
-      console.log(this.dates);
       let res = DateUtils.validateCourseDates(this.dates);
       for (let i = 0; i < res.length; i++) {
         const entry = res[i];
@@ -128,9 +149,23 @@ export default {
       this.$emit("delete");
       dialogResult.value = false;
     },
+    onHolidayDelete() {
+      this.dates.pop();
+      this.validationRules.pop();
+    },
+    onHolidayAdd() {
+      this.dates.push({ start: "", end: "" });
+      this.validationRules.push({ start: true, end: true });
+    },
     fieldName(i) {
       if (i < 2) return `${i + 1}. Abschnitt`;
       else return `${i - 1}. Ferienphase`;
+    },
+    isLast(i) {
+      return i + 1 == this.dates.length;
+    },
+    isLastHoliday(i) {
+      return this.isLast(i) && i > 1;
     },
   },
   computed: {
@@ -150,9 +185,11 @@ export default {
     initDates: {
       immediate: true,
       handler() {
-        this.dates = JSON.parse(JSON.stringify(this.initDates));
-        for (let i = 0; this.dates && i < this.dates.length; i++)
-          this.validationRules.push({ start: true, end: true });
+        if (this.initDates) {
+          this.dates = JSON.parse(JSON.stringify(this.initDates));
+          for (let i = 0; this.dates && i < this.dates.length; i++)
+            this.validationRules.push({ start: true, end: true });
+        }
       },
     },
   },
@@ -160,7 +197,6 @@ export default {
     if (this.hasData) this.dates = JSON.parse(JSON.stringify(this.initDates));
     else
       this.dates = [
-        { start: "", end: "" },
         { start: "", end: "" },
         { start: "", end: "" },
         { start: "", end: "" },

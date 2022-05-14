@@ -20,8 +20,8 @@
         ><template slot="content">
           <v-card-text class="black--text"
             >Wenn Sie einen anderen Bemerkungsbogen importieren,
-            <b>verlieren Sie hier alle Daten</b>, die Sie nicht gespeichert
-            haben.
+            <b>verlieren Sie hier alle Daten</b>, die Sie nicht
+            gespeichert/exportiert haben.
           </v-card-text>
           <v-card-text class="black--text" style="margin-top: -10px">
             Sind Sie sicher?
@@ -89,8 +89,8 @@
             min-height="100"
             class="fill-height"
             color="transparent"
-            v-for="(day, j) in data.days"
-            :key="j"
+            v-for="day in data.days"
+            :key="getDayUID(day)"
           >
             <v-lazy
               :options="{
@@ -157,6 +157,8 @@ export default {
         this.plan = Plan.fromJSON(data);
 
         this.hasData = true;
+
+        this.updateStorage();
       }
       // must play with dom to remove the pending file
       document.getElementById("noteboard-file").value = "";
@@ -259,6 +261,9 @@ export default {
         JSON.stringify(this.generateFullData())
       );
     },
+    getDayUID(day) {
+      return `${DateUtils.toNormalString(day.date)}_${day.entries.map(e => e.content).join("-")}`;
+    }
   },
   computed: {
     dates() {

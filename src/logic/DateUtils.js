@@ -28,7 +28,10 @@ let DateUtils = {
   },
 
   validateCourseDates(dates) {
-    let res = [{ start: true, end: true }, { start: true, end: true }, { start: true, end: true }, { start: true, end: true }];
+    let res = [];
+    for (let i = 0; i < dates.length; i++) {
+      res.push({ start: true, end: true });
+    }
 
     // rule 1: all dates must be filled
     for (let i = 0; i < dates.length; i++) {
@@ -53,15 +56,13 @@ let DateUtils = {
       }
     }
 
-    // rule 3: 2. date range must be later than 1. date range
-    for (let i = 0; i < dates.length / 2; i++) {
-      const end1 = new Date(dates[i * 2].end);
-      const start2 = new Date(dates[i * 2 + 1].start);
-      if (end1.getTime() >= start2.getTime()) {
-        if (res[i * 2].end === true)
-          res[i * 2].end = "";
-        res[i * 2 + 1].start = "ungültiges Datum (zu klein)";
-      }
+    // rule 3: 2. date range must be later than 1. date range for the terms
+    const end1 = new Date(dates[0].end);
+    const start2 = new Date(dates[1].start);
+    if (end1.getTime() >= start2.getTime()) {
+      if (res[0].end === true)
+        res[0].end = "";
+      res[1].start = "ungültiges Datum (zu klein)";
     }
 
     return res;
