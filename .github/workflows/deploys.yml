@@ -1,0 +1,29 @@
+name: Build web project
+on:
+  push:
+    # Sequence of patterns matched against refs/heads
+    branches:    
+      - web/main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Git repository
+        uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 14
+
+      - run: npm install
+      - run: npm run build
+
+      - name: Push to build
+        run: |
+          git config --global user.name 'ChuangSheep'
+          git config --global user.email '44814054+ChuangSheep@users.noreply.github.com'
+          git checkout web/build/stable 2>/dev/null || git checkout --orphan web/build/stable
+          git reset
+          git add dist -f
+          git commit -m "bot: automated build"
+          git push origin web/build/stable
