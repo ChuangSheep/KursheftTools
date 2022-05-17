@@ -196,7 +196,6 @@ export default {
 
       this.plan = np;
       this.hasData = true;
-      console.log(dates);
       this.updateStorage();
     },
     onBoardUpdate(dates) {
@@ -242,15 +241,12 @@ export default {
       const res = localStorage.getItem("kht.noteboard");
       if (res !== null) {
         const data = JSON.parse(res);
-        console.log(data);
         this.plan = Plan.fromJSON(data);
-        console.log(this.plan);
         this.hasData = true;
         return true;
       } else return false;
     },
     updateStorage() {
-      console.log("store changed");
       localStorage.setItem("kht.noteboard.hasData", this.hasData);
       if (!this.hasData) {
         localStorage.removeItem("kht.noteboard");
