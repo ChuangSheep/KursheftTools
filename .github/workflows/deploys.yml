@@ -26,4 +26,4 @@ jobs:
           git reset
           git add dist -f
           git commit -m "bot: automated build"
-          git push origin web/build/stable
+          git push origin web/build/stable --force
