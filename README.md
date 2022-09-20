@@ -1,6 +1,8 @@
-*Lang En |* [*De*](#Unavaliable) <br>
-
 # Kursheft Tools
+
+*A newer version as webapp is avaliable. For detailed information see branch [web/main](https://github.com/ChuangSheep/KursheftTools/tree/web/main). A demo is avaliable [here](https://kht.chuangsheep.com/).*
+
+---
 
 An Excel Addin for school to quickly create its own course plans. 
 
